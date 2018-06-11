@@ -5,33 +5,86 @@ var Block = require("bs-platform/lib/js/block.js");
 var Curry = require("bs-platform/lib/js/curry.js");
 var Printf = require("bs-platform/lib/js/printf.js");
 var Caml_format = require("bs-platform/lib/js/caml_format.js");
+var Caml_exceptions = require("bs-platform/lib/js/caml_exceptions.js");
 
 var quantity = Caml_format.caml_int_of_string;
 
-var Decode = /* module */[/* quantity */quantity];
+var block = Caml_format.caml_int_of_string;
 
-function encode(value) {
-  switch (value.tag | 0) {
-    case 1 : 
-        return Curry._1(Printf.sprintf(/* Format */[
-                        /* String_literal */Block.__(11, [
-                            "0x",
-                            /* Int */Block.__(4, [
-                                /* Int_x */6,
-                                /* No_padding */0,
-                                /* No_precision */0,
-                                /* End_of_format */0
-                              ])
-                          ]),
-                        "0x%x"
-                      ]), value[0]);
-    case 0 : 
-    case 2 : 
-        return value[0];
-    
+var amount = Caml_format.caml_int_of_string;
+
+var Decode = /* module */[
+  /* quantity */quantity,
+  /* block */block,
+  /* amount */amount
+];
+
+var addressMatcher = (/^0x[0-9a-fA-F]{40}$/);
+
+var InvalidAddress = Caml_exceptions.create("Formats.InvalidAddress");
+
+function validateAddress(value) {
+  return addressMatcher.test(value);
+}
+
+function toHex(amount) {
+  return Curry._1(Printf.sprintf(/* Format */[
+                  /* String_literal */Block.__(11, [
+                      "0x",
+                      /* Int */Block.__(4, [
+                          /* Int_x */6,
+                          /* No_padding */0,
+                          /* No_precision */0,
+                          /* End_of_format */0
+                        ])
+                    ]),
+                  "0x%x"
+                ]), amount);
+}
+
+function address(addr) {
+  return addr;
+}
+
+var block$1 = toHex;
+
+function blockOrTag(value) {
+  if (typeof value === "number") {
+    switch (value) {
+      case 0 : 
+          return "earliest";
+      case 1 : 
+          return "latest";
+      case 2 : 
+          return "pending";
+      
+    }
+  } else {
+    return Curry._1(Printf.sprintf(/* Format */[
+                    /* String_literal */Block.__(11, [
+                        "0x",
+                        /* Int */Block.__(4, [
+                            /* Int_x */6,
+                            /* No_padding */0,
+                            /* No_precision */0,
+                            /* End_of_format */0
+                          ])
+                      ]),
+                    "0x%x"
+                  ]), value[0]);
   }
 }
 
+var Encode = /* module */[
+  /* address */address,
+  /* block */block$1,
+  /* blockOrTag */blockOrTag
+];
+
 exports.Decode = Decode;
-exports.encode = encode;
-/* No side effect */
+exports.addressMatcher = addressMatcher;
+exports.InvalidAddress = InvalidAddress;
+exports.validateAddress = validateAddress;
+exports.toHex = toHex;
+exports.Encode = Encode;
+/* addressMatcher Not a pure module */

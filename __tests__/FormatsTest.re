@@ -3,25 +3,32 @@ open Expect;
 open Formats;
 
 
-describe("#encode", () => {
-  describe("Address", () => {
+describe("Encode", () => {
+  describe("#address", () => {
     test("address", () =>
-      expect(encode(Address("0x01234"))) |> toEqual(Js.Json.string("0x01234"))
+      expect(Encode.address("0x01234")) |> toEqual(Js.Json.string("0x01234"))
     );
   });
 
-  describe("Quantity", () => {
+  describe("#blockOrTag", () => {
     test("small number", () => 
-      expect(encode(Quantity(1234))) |> toEqual(Js.Json.string("0x4d2")));
+      expect(Encode.blockOrTag(Block(1234))) |> toEqual(Js.Json.string("0x4d2")));
 
     test("zero", () => 
-      expect(encode(Quantity(0))) |> toEqual(Js.Json.string("0x0")));
-  });
-  
-  describe("BlockTag", () => {
+      expect(Encode.blockOrTag(Block(0))) |> toEqual(Js.Json.string("0x0")));
+
     test("latest", () => {
-      expect(encode(BlockTag("latest"))) |> toEqual(Js.Json.string("latest"));
-    })
+      expect(Encode.blockOrTag(Latest)) |> toEqual(Js.Json.string("latest"));
+    });
+
+    test("pending", () => {
+      expect(Encode.blockOrTag(Pending)) |> toEqual(Js.Json.string("pending"));
+    });
+
+    test("earliest", () => {
+      expect(Encode.blockOrTag(Earliest)) |> toEqual(Js.Json.string("earliest"));
+    });
+
   });
 });
 

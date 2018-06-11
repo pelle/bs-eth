@@ -2,26 +2,29 @@
 'use strict';
 
 var Jest = require("@glennsl/bs-jest/src/jest.js");
-var Block = require("bs-platform/lib/js/block.js");
 var Formats = require("../src/Formats.bs.js");
 
-describe("#encode", (function () {
-        describe("Address", (function () {
+describe("Encode", (function () {
+        describe("#address", (function () {
                 return Jest.test("address", (function () {
-                              return Jest.Expect[/* toEqual */12]("0x01234", Jest.Expect[/* expect */0](Formats.encode(/* Address */Block.__(0, ["0x01234"]))));
+                              return Jest.Expect[/* toEqual */12]("0x01234", Jest.Expect[/* expect */0](Formats.Encode[/* address */0]("0x01234")));
                             }));
               }));
-        describe("Quantity", (function () {
+        describe("#blockOrTag", (function () {
                 Jest.test("small number", (function () {
-                        return Jest.Expect[/* toEqual */12]("0x4d2", Jest.Expect[/* expect */0](Formats.encode(/* Quantity */Block.__(1, [1234]))));
+                        return Jest.Expect[/* toEqual */12]("0x4d2", Jest.Expect[/* expect */0](Formats.Encode[/* blockOrTag */2](/* Block */[1234])));
                       }));
-                return Jest.test("zero", (function () {
-                              return Jest.Expect[/* toEqual */12]("0x0", Jest.Expect[/* expect */0](Formats.encode(/* Quantity */Block.__(1, [0]))));
-                            }));
-              }));
-        describe("BlockTag", (function () {
-                return Jest.test("latest", (function () {
-                              return Jest.Expect[/* toEqual */12]("latest", Jest.Expect[/* expect */0](Formats.encode(/* BlockTag */Block.__(2, ["latest"]))));
+                Jest.test("zero", (function () {
+                        return Jest.Expect[/* toEqual */12]("0x0", Jest.Expect[/* expect */0](Formats.Encode[/* blockOrTag */2](/* Block */[0])));
+                      }));
+                Jest.test("latest", (function () {
+                        return Jest.Expect[/* toEqual */12]("latest", Jest.Expect[/* expect */0](Formats.Encode[/* blockOrTag */2](/* Latest */1)));
+                      }));
+                Jest.test("pending", (function () {
+                        return Jest.Expect[/* toEqual */12]("pending", Jest.Expect[/* expect */0](Formats.Encode[/* blockOrTag */2](/* Pending */2)));
+                      }));
+                return Jest.test("earliest", (function () {
+                              return Jest.Expect[/* toEqual */12]("earliest", Jest.Expect[/* expect */0](Formats.Encode[/* blockOrTag */2](/* Earliest */0)));
                             }));
               }));
         return /* () */0;
