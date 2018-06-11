@@ -5,7 +5,9 @@ module BN = {
   [@bs.send] external toNumber : (t) => int = "";
 }
 
+
 type blockNumber = int;
+type nonce = int;
 type quantityResponse = string;
 type blockOrTag = Block(blockNumber) | Earliest | Latest | Pending ;
 
@@ -20,6 +22,7 @@ let strip0x = value => Js.String.replaceByRe([%bs.re "/^0x/"], "", value);
 
 module Decode = {
   let quantity = result => int_of_string(result);
+  let nonce = (result): nonce => quantity(result);
   let block = (result): blockNumber => quantity(result);
   let amount = result: wei => BN.create(strip0x(result), 16);
 };

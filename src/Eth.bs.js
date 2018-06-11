@@ -12,7 +12,25 @@ function getBalance(account, $staropt$star, _) {
       Formats.Encode[/* blockOrTag */2](from)
     ];
     return JsonRpc.jsonRpcRequest("eth_getBalance", params).then((function (result) {
-                  return Promise.resolve(Formats.Decode[/* amount */2](result));
+                  return Promise.resolve(Formats.Decode[/* amount */3](result));
+                }));
+  } else {
+    return Promise.reject([
+                Formats.InvalidAddress,
+                account
+              ]);
+  }
+}
+
+function getTransactionCount(account, $staropt$star, _) {
+  var from = $staropt$star ? $staropt$star[0] : /* Latest */1;
+  if (Formats.validateAddress(account)) {
+    var params = /* array */[
+      Formats.Encode[/* address */0](account),
+      Formats.Encode[/* blockOrTag */2](from)
+    ];
+    return JsonRpc.jsonRpcRequest("eth_getTransactionCount", params).then((function (result) {
+                  return Promise.resolve(Formats.Decode[/* nonce */1](result));
                 }));
   } else {
     return Promise.reject([
@@ -24,10 +42,18 @@ function getBalance(account, $staropt$star, _) {
 
 function blockNumber() {
   return JsonRpc.jsonRpcRequest("eth_blockNumber", /* array */[]).then((function (result) {
-                return Promise.resolve(Formats.Decode[/* block */1](result));
+                return Promise.resolve(Formats.Decode[/* block */2](result));
+              }));
+}
+
+function gasPrice() {
+  return JsonRpc.jsonRpcRequest("eth_gasPrice", /* array */[]).then((function (result) {
+                return Promise.resolve(Formats.Decode[/* amount */3](result));
               }));
 }
 
 exports.getBalance = getBalance;
+exports.getTransactionCount = getTransactionCount;
 exports.blockNumber = blockNumber;
+exports.gasPrice = gasPrice;
 /* Formats Not a pure module */

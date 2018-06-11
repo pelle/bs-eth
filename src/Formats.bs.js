@@ -16,6 +16,8 @@ function strip0x(value) {
 
 var quantity = Caml_format.caml_int_of_string;
 
+var nonce = Caml_format.caml_int_of_string;
+
 var block = Caml_format.caml_int_of_string;
 
 function amount(result) {
@@ -24,6 +26,7 @@ function amount(result) {
 
 var Decode = /* module */[
   /* quantity */quantity,
+  /* nonce */nonce,
   /* block */block,
   /* amount */amount
 ];
