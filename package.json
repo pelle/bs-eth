@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@glennsl/bs-json": "^2.0.0",
+    "bn.js": "^4.11.8",
     "bs-fetch": "^0.3.0",
     "isomorphic-fetch": "^2.2.1"
   }

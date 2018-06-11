@@ -3,15 +3,24 @@
 
 var Block = require("bs-platform/lib/js/block.js");
 var Curry = require("bs-platform/lib/js/curry.js");
+var BnJs = require("bn.js");
 var Printf = require("bs-platform/lib/js/printf.js");
 var Caml_format = require("bs-platform/lib/js/caml_format.js");
 var Caml_exceptions = require("bs-platform/lib/js/caml_exceptions.js");
+
+var BN = /* module */[];
+
+function strip0x(value) {
+  return value.replace((/^0x/), "");
+}
 
 var quantity = Caml_format.caml_int_of_string;
 
 var block = Caml_format.caml_int_of_string;
 
-var amount = Caml_format.caml_int_of_string;
+function amount(result) {
+  return new BnJs(strip0x(result), 16);
+}
 
 var Decode = /* module */[
   /* quantity */quantity,
@@ -81,6 +90,8 @@ var Encode = /* module */[
   /* blockOrTag */blockOrTag
 ];
 
+exports.BN = BN;
+exports.strip0x = strip0x;
 exports.Decode = Decode;
 exports.addressMatcher = addressMatcher;
 exports.InvalidAddress = InvalidAddress;
