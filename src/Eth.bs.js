@@ -9,7 +9,7 @@ function getBalance(account, $staropt$star, _) {
   if (Formats.validateAddress(account)) {
     var params = /* array */[
       Formats.Encode[/* address */0](account),
-      Formats.Encode[/* blockOrTag */2](from)
+      Formats.Encode[/* blockOrTag */3](from)
     ];
     return JsonRpc.jsonRpcRequest("eth_getBalance", params).then((function (result) {
                   return Promise.resolve(Formats.Decode[/* amount */3](result));
@@ -27,7 +27,7 @@ function getTransactionCount(account, $staropt$star, _) {
   if (Formats.validateAddress(account)) {
     var params = /* array */[
       Formats.Encode[/* address */0](account),
-      Formats.Encode[/* blockOrTag */2](from)
+      Formats.Encode[/* blockOrTag */3](from)
     ];
     return JsonRpc.jsonRpcRequest("eth_getTransactionCount", params).then((function (result) {
                   return Promise.resolve(Formats.Decode[/* nonce */1](result));
@@ -52,8 +52,26 @@ function gasPrice() {
               }));
 }
 
+function call(tx, $staropt$star, _) {
+  var from = $staropt$star ? $staropt$star[0] : /* Latest */1;
+  var address = tx.to;
+  if (Formats.validateAddress(address)) {
+    var params = /* array */[
+      Formats.Encode[/* transaction */2](tx),
+      Formats.Encode[/* blockOrTag */3](from)
+    ];
+    return JsonRpc.jsonRpcRequest("eth_call", params);
+  } else {
+    return Promise.reject([
+                Formats.InvalidAddress,
+                address
+              ]);
+  }
+}
+
 exports.getBalance = getBalance;
 exports.getTransactionCount = getTransactionCount;
 exports.blockNumber = blockNumber;
 exports.gasPrice = gasPrice;
+exports.call = call;
 /* Formats Not a pure module */

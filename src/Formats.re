@@ -12,10 +12,22 @@ type quantityResponse = string;
 type blockOrTag = Block(blockNumber) | Earliest | Latest | Pending ;
 
 type address = string;
+type data = string;
 
 type wei = BN.t;
 type gas = int;
 type eth = BN.t;
+
+[@bs.deriving abstract]
+type transaction = {
+  [@bs.as "to"] contract: address,
+  [@bs.optional] from: address,
+  [@bs.optional] gas: gas,
+  [@bs.optional] gasPrice: wei,
+  [@bs.optional] value: wei,
+  [@bs.optional] data: data,
+  [@bs.optional] nonce: nonce
+};
 
 let strip0x = value => Js.String.replaceByRe([%bs.re "/^0x/"], "", value);
 /* Js.String.sliceToEnd(value, ~from=2); */
@@ -35,9 +47,12 @@ let validateAddress = value => Js.Re.test(value, addressMatcher);
 
 let toHex = amount => Js.Json.string(Printf.sprintf("0x%x", amount));
 
+let toDict = [%raw obj => {| return obj |}];
+
 module Encode = {
   let address = (addr) => Js.Json.string(addr);
   let block = (blk: blockNumber) => toHex(blk);
+  let transaction = (tx: transaction) => Js.Json.object_(toDict(tx));
 
   let blockOrTag = value => switch (value) {
     | Block(amount) => Js.Json.string(Printf.sprintf("0x%x", amount))
@@ -47,3 +62,6 @@ module Encode = {
     };
 }
 
+/* 
+curl -X POST --data '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"0x1f573d6fb3f13d689ff844b4ce37794d79a7ff1c", "data":"0x06fdde03"],"id":1}' https://mainnet.infura.io/re-eth
+*/

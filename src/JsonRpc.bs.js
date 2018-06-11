@@ -35,7 +35,7 @@ function handleResponse(json) {
 }
 
 function jsonRpcRequest(method_, params) {
-  return fetch("https://mainnet.infura.io/re-eth", Fetch.RequestInit[/* make */0](/* Some */[/* Post */2], /* Some */[{
+  return fetch("https://mainnet.infura.io/bs-eth", Fetch.RequestInit[/* make */0](/* Some */[/* Post */2], /* Some */[{
                           "Content-Type": "application/json"
                         }], /* Some */[JSON.stringify(jsonRpcRequestPayload(method_, params))], /* None */0, /* None */0, /* None */0, /* None */0, /* None */0, /* None */0, /* None */0, /* None */0)(/* () */0)).then((function (prim) {
                   return prim.json();

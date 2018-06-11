@@ -54,11 +54,15 @@ function toHex(amount) {
                 ]), amount);
 }
 
+var toDict = function (obj){ return obj };
+
 function address(addr) {
   return addr;
 }
 
 var block$1 = toHex;
+
+var transaction = toDict;
 
 function blockOrTag(value) {
   if (typeof value === "number") {
@@ -90,6 +94,7 @@ function blockOrTag(value) {
 var Encode = /* module */[
   /* address */address,
   /* block */block$1,
+  /* transaction */transaction,
   /* blockOrTag */blockOrTag
 ];
 
@@ -100,5 +105,6 @@ exports.addressMatcher = addressMatcher;
 exports.InvalidAddress = InvalidAddress;
 exports.validateAddress = validateAddress;
 exports.toHex = toHex;
+exports.toDict = toDict;
 exports.Encode = Encode;
 /* addressMatcher Not a pure module */

@@ -47,3 +47,14 @@ describe("#gasPrice", () => {
     gasPrice() |> Js.Promise.then_(price => expect(Formats.BN.toNumber(price)) |> toBeGreaterThanOrEqual(2000000000) |> Js.Promise.resolve)
   )
 });
+
+describe("#call", () => {
+  testPromise("calls contract with no result", () =>
+    call(~tx=Formats.transaction(~contract="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275", ()), ()) |> Js.Promise.then_(data => expect(data) |> toBe("0x") |> Js.Promise.resolve)
+  );
+
+  testPromise("calls contract with data", () =>
+    call(~tx=Formats.transaction(~contract="0x0D8775F648430679A709E98d2b0Cb6250d2887EF", ~data="0x95d89b41", ()), ~from=Formats.Block(5768167), ()) |> Js.Promise.then_(data => expect(data) |> toBe("0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000034241540000000000000000000000000000000000000000000000000000000000") |> Js.Promise.resolve)
+  );
+
+});

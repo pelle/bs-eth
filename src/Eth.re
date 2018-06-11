@@ -34,7 +34,12 @@ let gasPrice = () => {
   )
 };
 
-
-
+let call = (~tx: transaction, ~from=Latest, ()) => {
+  let address = contract(tx);
+  if (validateAddress(address)) {
+   let params = [|Encode.transaction(tx), Encode.blockOrTag(from)|];
+   JsonRpc.jsonRpcRequest("eth_call", params);
+  } else Js.Promise.reject(InvalidAddress(address))
+};
 
 

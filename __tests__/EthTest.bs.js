@@ -46,4 +46,22 @@ describe("#gasPrice", (function () {
                     }));
       }));
 
+describe("#call", (function () {
+        Jest.testPromise(/* None */0, "calls contract with no result", (function () {
+                return Eth.call({
+                              to: "0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275"
+                            }, /* None */0, /* () */0).then((function (data) {
+                              return Promise.resolve(Jest.Expect[/* toBe */2]("0x", Jest.Expect[/* expect */0](data)));
+                            }));
+              }));
+        return Jest.testPromise(/* None */0, "calls contract with data", (function () {
+                      return Eth.call({
+                                    to: "0x0D8775F648430679A709E98d2b0Cb6250d2887EF",
+                                    data: "0x95d89b41"
+                                  }, /* Some */[/* Block */[5768167]], /* () */0).then((function (data) {
+                                    return Promise.resolve(Jest.Expect[/* toBe */2]("0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000034241540000000000000000000000000000000000000000000000000000000000", Jest.Expect[/* expect */0](data)));
+                                  }));
+                    }));
+      }));
+
 /*  Not a pure module */

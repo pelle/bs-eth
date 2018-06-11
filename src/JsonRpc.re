@@ -25,9 +25,10 @@ let handleResponse = (json) : jsonRpcResult => {
 };
 
 let jsonRpcRequest = (method, params) => {
+  /* Js.log(jsonRpcRequestPayload(method, params)); */
   Js.Promise.(
     Fetch.fetchWithInit(
-      "https://mainnet.infura.io/re-eth",
+      "https://mainnet.infura.io/bs-eth",
       Fetch.RequestInit.make(
         ~method_=Post,
         ~body=Fetch.BodyInit.make(Js.Json.stringify(Js.Json.object_(jsonRpcRequestPayload(method, params)))),
