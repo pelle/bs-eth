@@ -5,7 +5,6 @@ module BN = {
   [@bs.send] external toNumber : (t) => int = "";
 }
 
-
 type blockNumber = int;
 type nonce = int;
 type quantityResponse = string;
