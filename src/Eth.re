@@ -44,7 +44,7 @@ let call = (~tx: transaction, ~from=Latest, ()) => {
   if (validateAddress(address)) {
    let params = [|Encode.transaction(tx), Encode.blockOrTag(from)|];
    JsonRpc.jsonRpcRequest("eth_call", params);
-  } else Repromise.Rejectable.rejected(InvalidAddress(address))
+  } else Repromise.resolved(Error("Invalid Address: " ++ address))
 };
 
 

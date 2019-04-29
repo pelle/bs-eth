@@ -33,8 +33,6 @@ module Decode = {
 
 let addressMatcher = [%bs.re "/^0x[0-9a-fA-F]{40}$/"];
 
-exception InvalidAddress(address);
-
 let validateAddress = value => Js.Re.test(value, addressMatcher);
 
 let toHex = amount => Js.Json.string(Printf.sprintf("0x%x", amount));
