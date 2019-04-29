@@ -6,7 +6,7 @@
     "in-source": true
   },
   "suffix": ".bs.js",
-  "bs-dependencies": ["@glennsl/bs-json", "bs-fetch"],
+  "bs-dependencies": ["@glennsl/bs-json", "bs-fetch", "@aantron/repromise", "bs-bn.js"],
   "bs-dev-dependencies": ["@glennsl/bs-jest"],
   "sources": [
     {

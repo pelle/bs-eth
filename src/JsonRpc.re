@@ -1,6 +1,4 @@
-[%raw "require('isomorphic-fetch')"]
-
-open Belt;
+open Belt.Result;
 
 let jsonRpcRequestPayload = (method, params) => {
   let payload = Js.Dict.empty();
@@ -8,41 +6,30 @@ let jsonRpcRequestPayload = (method, params) => {
   Js.Dict.set(payload, "id", Js.Json.number(1.0));
   Js.Dict.set(payload, "method", Js.Json.string(method));
   Js.Dict.set(payload, "params", Js.Json.array(params));
-  payload
+  payload;
 };
-
-type jsonRpcResult = Result.t(string, string);
+type jsonRpcResult = Belt.Result.t(string, string);
 
 exception JsonRpcError(string);
 
-let handleResponse = (json) : jsonRpcResult => {
+let handleResponse = json : jsonRpcResult => {
   open Json.Decode;
   let error = optional(at(["error", "message"], string), json);
   switch (error) {
-  | Some(message) => Result.Error(message)
-  | None => Result.Ok(field("result", string, json))
-  }
+  | Some(message) => Error(message)
+  | None => Ok(field("result", string, json))
+  };
 };
 
-let jsonRpcRequest = (method, params) => {
+let jsonRpcRequest = (method, params) =>
   /* Js.log(jsonRpcRequestPayload(method, params)); */
-  Js.Promise.(
-    Fetch.fetchWithInit(
-      "https://mainnet.infura.io/bs-eth",
-      Fetch.RequestInit.make(
-        ~method_=Post,
-        ~body=Fetch.BodyInit.make(Js.Json.stringify(Js.Json.object_(jsonRpcRequestPayload(method, params)))),
-        ~headers=Fetch.HeadersInit.make({"Content-Type": "application/json"}),
-        ()
-      )
-    )
-    |> then_(Fetch.Response.json)
-    |> then_((json) => {
-      switch(handleResponse(json)) {
-      | Result.Error(message) => reject(JsonRpcError(message))
-      | Result.Ok(data) => resolve(data)
-      }
+  ReFetch.fetchJson(
+    "https://mainnet.infura.io/bs-eth",
+    jsonRpcRequestPayload(method, params),
+  )
+  |> Repromise.Rejectable.map(response => {
+    switch(response) {
+    | Ok(json) => handleResponse(json)
+    | Error(error) => Error(error)
     }
-  )
-  )
-};
+  });

@@ -1,10 +1,3 @@
-module BN = {
-  type t;
-  [@bs.new] [@bs.module] external create : (string, int) => t = "bn.js";
-  [@bs.send] external toString : (t, int) => string = "";
-  [@bs.send] external toNumber : (t) => int = "";
-}
-
 type blockNumber = int;
 type nonce = int;
 type quantityResponse = string;
@@ -13,9 +6,9 @@ type blockOrTag = Block(blockNumber) | Earliest | Latest | Pending ;
 type address = string;
 type data = string;
 
-type wei = BN.t;
+type wei = Bn.t;
 type gas = int;
-type eth = BN.t;
+type eth = Bn.t;
 
 [@bs.deriving abstract]
 type transaction = {
@@ -35,7 +28,7 @@ module Decode = {
   let quantity = result => int_of_string(result);
   let nonce = (result): nonce => quantity(result);
   let block = (result): blockNumber => quantity(result);
-  let amount = result: wei => BN.create(strip0x(result), 16);
+  let amount = result: wei => Bn.fromString(~base=16, strip0x(result));
 };
 
 let addressMatcher = [%bs.re "/^0x[0-9a-fA-F]{40}$/"];

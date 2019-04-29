@@ -66,11 +66,11 @@ describe("Decode", () => {
   });
 
   describe("amount", () => {
-    test("smallish number", () =>  expect(BN.toNumber(Decode.amount("0x4d2"))) |> toEqual(1234));
-    test("zero", () =>  expect(BN.toNumber(Decode.amount("0x0"))) |> toEqual(0));
-    test("largeish number", () =>  expect(BN.toNumber(Decode.amount("0x0D8779a0"))) |> toEqual(226982304));
-    test("large un-prefixed number", () =>  expect(BN.toString(Decode.amount("6d5923e6449122cbbcc1b96093e0b7e4fd3e469f58daddae"), 10)) |> toEqual("2681210161307671758365144741753253651834466456474188701102"));
-    test("large prefixed number", () =>  expect(BN.toString(Decode.amount("0x6d5923e6449122cbbcc1b96093e0b7e4fd3e469f58daddae"), 10)) |> toEqual("2681210161307671758365144741753253651834466456474188701102"));
+    test("smallish number", () =>  expect(Bn.toNumber(Decode.amount("0x4d2"))) |> toEqual(1234.0));
+    test("zero", () =>  expect(Bn.toNumber(Decode.amount("0x0"))) |> toEqual(0.0));
+    test("largeish number", () =>  expect(Bn.toNumber(Decode.amount("0x0D8779a0"))) |> toEqual(226982304.0));
+    test("large un-prefixed number", () =>  expect(Bn.toString(~base=10, Decode.amount("6d5923e6449122cbbcc1b96093e0b7e4fd3e469f58daddae"))) |> toEqual("2681210161307671758365144741753253651834466456474188701102"));
+    test("large prefixed number", () =>  expect(Bn.toString(~base=10, Decode.amount("0x6d5923e6449122cbbcc1b96093e0b7e4fd3e469f58daddae"))) |> toEqual("2681210161307671758365144741753253651834466456474188701102"));
   });
 
 });
