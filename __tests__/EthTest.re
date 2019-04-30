@@ -3,103 +3,190 @@ open Expect;
 open Eth;
 open Belt.Result;
 
+[@bs.module "ganache-cli"]
+external ganache : unit => JsonRpc.Web3provider.t = "provider";
+
+let provider = JsonRpc.wrapProvider(ganache());
+
+let randomAccount = "0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275";
+let coinbase = ref(randomAccount);
+let allAccounts = ref([|randomAccount|]);
+
+beforeAllPromise(() =>
+  getCoinbase(provider)
+  |> Repromise.map(result =>
+       switch (result) {
+       | Ok(address) =>
+         coinbase := address;
+         /* Js.log("address: " ++ coinbase^); */
+         ();
+       | Error(msg) => Js.log(msg)
+       }
+     )
+  |> Repromise.Rejectable.toJsPromise
+);
+
 describe("#blockNumber", () => {
   testPromise("fetches block", () =>
-    blockNumber() 
-    |> Repromise.Rejectable.map(result => switch (result) {
-      | Ok(block) => expect(block) |> toBeGreaterThan(5768135)
-      | Error(msg) => fail("No error should happen")
-    })
+    blockNumber(provider)
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(block) => expect(block) |> toBe(0)
+         | Error(msg) => fail(msg)
+         }
+       )
     |> Repromise.Rejectable.toJsPromise
   );
+
+  describe("updates block", () => {
+    beforeAllPromise(() =>
+      newBlock(provider) |> Repromise.Rejectable.toJsPromise
+    );
+
+    testPromise("updates block", () =>
+      blockNumber(provider)
+      |> Repromise.map(result =>
+           switch (result) {
+           | Ok(block) => expect(block) |> toBe(1)
+           | Error(msg) => fail(msg)
+           }
+         )
+      |> Repromise.Rejectable.toJsPromise
+    );
+  });
 });
+
+describe("getAccounts", () =>
+  testPromise("fetches accounts", () =>
+    getAccounts(provider)
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(accounts) => {
+           allAccounts := accounts;
+           expect(Belt.Array.length(accounts)) |> toEqual(10);
+         }
+         | Error(msg) => fail(msg)
+         }
+       )
+    |> Repromise.Rejectable.toJsPromise
+  )
+);
 
 describe("#getBalance", () => {
   testPromise("invalid address", () =>
-    getBalance(~account="0x1234", ()) 
-    |> Repromise.Rejectable.map(result => switch (result) {
-      | Ok(_) => fail("this should not work")
-      | Error(msg) => msg |> expect |> toEqual("Invalid Address: 0x1234")
-    })
+    getBalance(~provider, ~account="0x1234", ())
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(_) => fail("this should not work")
+         | Error(msg) => msg |> expect |> toEqual("Invalid Address: 0x1234")
+         }
+       )
     |> Repromise.Rejectable.toJsPromise
   );
 
   testPromise("empty Balance", () =>
-    getBalance(~account="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275", ())
-    |> Repromise.Rejectable.map(result => switch (result) {
-      | Ok(amount) => expect(Bn.toNumber(amount)) |> toEqual(0.0)
-      | Error(msg) => fail(msg)
-    })
+    getBalance(~provider, ~account=randomAccount, ())
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(amount) => expect(Bn.toNumber(amount)) |> toEqual(0.0)
+         | Error(msg) => fail(msg)
+         }
+       )
     |> Repromise.Rejectable.toJsPromise
   );
 
   testPromise("With Balance at block", () =>
-    getBalance(~account="0x76CF5100f62BaBd1574c3d2082f01c6bb3b420f8", ~from=Formats.Block(5768167), ()) 
-    |> Repromise.Rejectable.map(result => switch (result) {
-      | Ok(amount) => Bn.toString(~base=10, amount) |> expect |> toEqual("6000000000000000")
-      | Error(msg) => fail(msg)
-    })
+    getBalance(~provider, ~account=coinbase^, ~from=Formats.Block(0), ())
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(amount) =>
+           Bn.toString(~base=10, amount)
+           |> expect
+           |> toEqual("100000000000000000000")
+         | Error(msg) => fail(msg)
+         }
+       )
     |> Repromise.Rejectable.toJsPromise
   );
-
 });
 
 describe("#getTransactionCount", () => {
   /* Don't know how to test this correclty yet  */
   /* testPromise("invalid address", () =>
-    getBalance("0x1234", ()) |> Js.Promise.catch(error => expect(error) |> toBe(Formats.InvalidAddress("0x1234")) |> Js.Promise.resolve)
-  ); */
-
+       getBalance("0x1234", ()) |> Js.Promise.catch(error => expect(error) |> toBe(Formats.InvalidAddress("0x1234")) |> Js.Promise.resolve)
+     ); */
 
   testPromise("with 1 transaction", () =>
-    getTransactionCount(~account="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275", ()) 
-    |> Repromise.Rejectable.map(result => switch(result) {
-      | Ok(result) => result |> expect |> toEqual(1)
-      | Error(msg) => fail(msg)
-    })
+    getTransactionCount(~provider, ~account=coinbase^, ())
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(result) => result |> expect |> toEqual(0)
+         | Error(msg) => fail(msg)
+         }
+       )
     |> Repromise.Rejectable.toJsPromise
-
   );
 
   testPromise("with no transactions", () =>
-    getTransactionCount(~account="0x76CF5100f62BaBd1574c3d2082f01c6bb3b420f8", ~from=Formats.Block(5768167), ()) 
-    |> Repromise.Rejectable.map(result => switch(result) {
-      | Ok(result) => result |> expect |> toEqual(0)
-      | Error(msg) => fail(msg)
-    })
+    getTransactionCount(
+      ~provider,
+      ~account=coinbase^,
+      ~from=Formats.Block(0),
+      (),
+    )
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(result) => result |> expect |> toEqual(0)
+         | Error(msg) => fail(msg)
+         }
+       )
     |> Repromise.Rejectable.toJsPromise
   );
-
 });
 
-describe("#gasPrice", () => {
+describe("#gasPrice", () =>
   testPromise("fetches gas price in wei", () =>
-    gasPrice() 
-    |> Repromise.Rejectable.map(result => switch(result) {
-      | Ok(result) => Bn.toNumber(result) |> expect |> toBeGreaterThanOrEqual(2000000000.0)
-      | Error(msg) => fail(msg)
-    })
+    gasPrice(provider)
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(result) =>
+           Bn.toNumber(result)
+           |> expect
+           |> toBeGreaterThanOrEqual(2000000000.0)
+         | Error(msg) => fail(msg)
+         }
+       )
     |> Repromise.Rejectable.toJsPromise
   )
-});
+);
 
-describe("#call", () => {
-  testPromise("calls contract with no result", () =>
-    call(~tx=Formats.transaction(~contract="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275", ()), ()) 
-    |> Repromise.Rejectable.map(result => switch(result) {
-      | Ok(result) => result |> expect |> toBe("0x")
-      | Error(msg) => fail(msg)
-    })
-    |> Repromise.Rejectable.toJsPromise
-  );
-
-  testPromise("calls contract with data", () =>
-    call(~tx=Formats.transaction(~contract="0x0D8775F648430679A709E98d2b0Cb6250d2887EF", ~data="0x95d89b41", ()), ~from=Formats.Block(5768167), ()) 
-    |> Repromise.Rejectable.map(result => switch(result) {
-      | Ok(result) => result |> expect |> toBe("0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000034241540000000000000000000000000000000000000000000000000000000000")
-      | Error(msg) => fail(msg)
-    })
-    |> Repromise.Rejectable.toJsPromise
-  );
-
-});
+describe("#call", () =>
+  testPromise("calls contract with no result", ()
+    =>
+      call(
+        ~provider,
+        ~tx=
+          Formats.transaction(
+            ~contract="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
+            (),
+          ),
+        (),
+      )
+      |> Repromise.map(result =>
+           switch (result) {
+           | Ok(result) => result |> expect |> toBe("0x")
+           | Error(msg) => fail(msg)
+           }
+         )
+      |> Repromise.Rejectable.toJsPromise
+    )
+    /* Re-enable once we have some actual contracts deployed */
+    /* testPromise("calls contract with data", () =>
+         call(~provider=provider, ~tx=Formats.transaction(~contract="0x0D8775F648430679A709E98d2b0Cb6250d2887EF", ~data="0x95d89b41", ()), ~from=Formats.Block(5768167), ())
+         |> Repromise.map(result => switch(result) {
+           | Ok(result) => result |> expect |> toBe("0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000034241540000000000000000000000000000000000000000000000000000000000")
+           | Error(msg) => fail(msg)
+         })
+         |> Repromise.Rejectable.toJsPromise
+       ); */
+);

@@ -1,10 +1,26 @@
 open Formats;
 open Belt.Result;
 
-let getBalance = (~account: address, ~from=Latest, ()) => {
+let getCoinbase = (provider: JsonRpc.provider) => {
+  provider("eth_coinbase", [||])
+  |> Repromise.map(result => switch(result) {
+    | Ok(data) => Ok(Decode.address(data))
+    | Error(msg) => Error(msg)
+  })
+};
+
+let getAccounts = (provider: JsonRpc.provider) => {
+  provider("eth_accounts", [||])
+  |> Repromise.map(result => switch(result) {
+    | Ok(data) => Ok(Decode.accounts(data))
+    | Error(msg) => Error(msg)
+  })
+};
+
+let getBalance = (~provider: JsonRpc.provider, ~account: address, ~from=Latest, ()) => {
   if (validateAddress(account)) {
     let params = [|Encode.address(account), Encode.blockOrTag(from)|];
-    JsonRpc.jsonRpcRequest("eth_getBalance", params)
+    provider("eth_getBalance", params)
     |> Repromise.map(result => switch(result) {
       | Ok(data) => Ok(Decode.amount(data))
       | Error(msg) => Error(msg)
@@ -12,10 +28,10 @@ let getBalance = (~account: address, ~from=Latest, ()) => {
   } else Repromise.resolved(Error("Invalid Address: " ++ account))
 };
 
-let getTransactionCount = (~account: address, ~from=Latest, ()) => {
+let getTransactionCount = (~provider: JsonRpc.provider, ~account: address, ~from=Latest, ()) => {
   if (validateAddress(account)) {
    let params = [|Encode.address(account), Encode.blockOrTag(from)|];
-    JsonRpc.jsonRpcRequest("eth_getTransactionCount", params)
+    provider("eth_getTransactionCount", params)
     |> Repromise.map(result => switch(result) {
       | Ok(data) => Ok(Decode.nonce(data))
       | Error(msg) => Error(msg)
@@ -23,28 +39,39 @@ let getTransactionCount = (~account: address, ~from=Latest, ()) => {
   } else Repromise.resolved(Error("Invalid Address: " ++ account))
 };
 
-let blockNumber = () => {
-  JsonRpc.jsonRpcRequest("eth_blockNumber", [||])
+let blockNumber = (provider: JsonRpc.provider) => {
+  provider("eth_blockNumber", [||])
   |> Repromise.map(result => switch(result) {
     | Ok(data) => Ok(Decode.block(data))
     | Error(msg) => Error(msg)
   })
 };
 
-let gasPrice = () => {
-  JsonRpc.jsonRpcRequest("eth_gasPrice", [||])
+let gasPrice = (provider: JsonRpc.provider) => {
+  provider("eth_gasPrice", [||])
   |> Repromise.map(result => switch(result) {
     | Ok(data) => Ok(Decode.amount(data))
     | Error(msg) => Error(msg)
   })
 };
 
-let call = (~tx: transaction, ~from=Latest, ()) => {
-  let address = contract(tx);
+let call = (~provider: JsonRpc.provider, ~tx: transaction, ~from=Latest, ()) => {
+  let address = contractGet(tx);
   if (validateAddress(address)) {
-   let params = [|Encode.transaction(tx), Encode.blockOrTag(from)|];
-   JsonRpc.jsonRpcRequest("eth_call", params);
+    let params = [|Encode.transaction(tx), Encode.blockOrTag(from)|];
+    provider("eth_call", params)
+    |> Repromise.map(result => switch(result) {
+      | Ok(data) => Ok(Decode.data(data))
+      | Error(msg) => Error(msg)
+    });
   } else Repromise.resolved(Error("Invalid Address: " ++ address))
 };
 
 
+let newBlock = (provider: JsonRpc.provider) => {
+  provider("evm_mine", [||])
+  |> Repromise.map(result => switch(result) {
+    | Ok(data) => Ok(Decode.string(data))
+    | Error(msg) => Error(msg)
+  })
+};

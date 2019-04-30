@@ -14,7 +14,8 @@
   "license": "MIT",
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.8",
-    "bs-platform": "^5.0.3"
+    "bs-platform": "^5.0.3",
+    "ganache-cli": "^6.4.3"
   },
   "dependencies": {
     "@aantron/repromise": "^0.6.0",

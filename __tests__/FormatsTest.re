@@ -48,29 +48,40 @@ describe("Encode", () => {
 
 describe("Decode", () => {
   describe("quantity", () => {
-    test("smallish number", () =>  expect(Decode.quantity("0x4d2")) |> toEqual(1234));
-    test("zero", () =>  expect(Decode.quantity("0x0")) |> toEqual(0));
-    test("largeish number", () =>  expect(Decode.quantity("0x0D8779a0")) |> toEqual(226982304));
+    test("smallish number", () =>  expect(Decode.quantity(Js.Json.string("0x4d2"))) |> toEqual(1234));
+    test("zero", () =>  expect(Decode.quantity(Js.Json.string("0x0"))) |> toEqual(0));
+    test("largeish number", () =>  expect(Decode.quantity(Js.Json.string("0x0D8779a0"))) |> toEqual(226982304));
   });
 
   describe("nonce", () => {
-    test("smallish number", () =>  expect(Decode.nonce("0x4d2")) |> toEqual(1234));
-    test("zero", () =>  expect(Decode.nonce("0x0")) |> toEqual(0));
-    test("largeish number", () =>  expect(Decode.nonce("0x0D8779a0")) |> toEqual(226982304));
+    test("smallish number", () =>  expect(Decode.nonce(Js.Json.string("0x4d2"))) |> toEqual(1234));
+    test("zero", () =>  expect(Decode.nonce(Js.Json.string("0x0"))) |> toEqual(0));
+    test("largeish number", () =>  expect(Decode.nonce(Js.Json.string("0x0D8779a0"))) |> toEqual(226982304));
   });
 
   describe("block", () => {
-    test("smallish number", () =>  expect(Decode.block("0x4d2")) |> toEqual(1234));
-    test("zero", () =>  expect(Decode.block("0x0")) |> toEqual(0));
-    test("largeish number", () =>  expect(Decode.block("0x0D8779a0")) |> toEqual(226982304));
+    test("smallish number", () =>  expect(Decode.block(Js.Json.string("0x4d2"))) |> toEqual(1234));
+    test("zero", () =>  expect(Decode.block(Js.Json.string("0x0"))) |> toEqual(0));
+    test("largeish number", () =>  expect(Decode.block(Js.Json.string("0x0D8779a0"))) |> toEqual(226982304));
   });
 
   describe("amount", () => {
-    test("smallish number", () =>  expect(Bn.toNumber(Decode.amount("0x4d2"))) |> toEqual(1234.0));
-    test("zero", () =>  expect(Bn.toNumber(Decode.amount("0x0"))) |> toEqual(0.0));
-    test("largeish number", () =>  expect(Bn.toNumber(Decode.amount("0x0D8779a0"))) |> toEqual(226982304.0));
-    test("large un-prefixed number", () =>  expect(Bn.toString(~base=10, Decode.amount("6d5923e6449122cbbcc1b96093e0b7e4fd3e469f58daddae"))) |> toEqual("2681210161307671758365144741753253651834466456474188701102"));
-    test("large prefixed number", () =>  expect(Bn.toString(~base=10, Decode.amount("0x6d5923e6449122cbbcc1b96093e0b7e4fd3e469f58daddae"))) |> toEqual("2681210161307671758365144741753253651834466456474188701102"));
+    test("smallish number", () =>  expect(Bn.toNumber(Decode.amount(Js.Json.string("0x4d2")))) |> toEqual(1234.0));
+    test("zero", () =>  expect(Bn.toNumber(Decode.amount(Js.Json.string("0x0")))) |> toEqual(0.0));
+    test("largeish number", () =>  expect(Bn.toNumber(Decode.amount(Js.Json.string("0x0D8779a0")))) |> toEqual(226982304.0));
+    test("large un-prefixed number", () =>  expect(Bn.toString(~base=10, Decode.amount(Js.Json.string("6d5923e6449122cbbcc1b96093e0b7e4fd3e469f58daddae")))) |> toEqual("2681210161307671758365144741753253651834466456474188701102"));
+    test("large prefixed number", () =>  expect(Bn.toString(~base=10, Decode.amount(Js.Json.string("0x6d5923e6449122cbbcc1b96093e0b7e4fd3e469f58daddae")))) |> toEqual("2681210161307671758365144741753253651834466456474188701102"));
+  });
+
+  describe("address", () => {
+    test("valid", () => expect(Decode.address(Js.Json.string("0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275"))) |> toEqual("0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275"));
+    test("invalid", () => expect(Decode.address(Js.Json.number(234234.0))) |> toEqual(""));
+  });
+
+  describe("accounts", () => {
+    test("valid", () => expect(Decode.accounts(Js.Json.array([|Js.Json.string("0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275"), Js.Json.string("0x3bb26fbace15b71553e36d4a214fc8503090c348")|]))) |> toEqual([|"0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275", "0x3bb26fbace15b71553e36d4a214fc8503090c348"|]));    
+    test("empty", () => expect(Decode.accounts(Js.Json.array([||]))) |> toEqual([||]));
+    test("invalid", () => expect(Decode.accounts(Js.Json.number(234234.0))) |> toEqual([||]));
   });
 
 });
