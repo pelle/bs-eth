@@ -5,6 +5,7 @@
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
     "watch": "bsb -make-world -w",
+    "refmt": "bsrefmt --in-place **/*.re",
     "test": "yarn jest"
   },
   "keywords": [
@@ -15,7 +16,9 @@
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.8",
     "bs-platform": "^5.0.3",
-    "ganache-cli": "^6.4.3"
+    "ganache-cli": "^6.4.3",
+    "husky": "^2.1.0",
+    "lint-staged": "^8.1.5"
   },
   "dependencies": {
     "@aantron/repromise": "^0.6.0",
@@ -24,5 +27,16 @@
     "bs-bn.js": "^0.0.2",
     "bs-fetch": "^0.3.0",
     "isomorphic-fetch": "^2.2.1"
+  },
+  "lint-staged": {
+    "*.re": [
+      "bsrefmt --in-place",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   }
 }

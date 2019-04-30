@@ -40,32 +40,38 @@ let bnZero = Bn.fromFloat(0.0);
 module Decode = {
   open Belt.Result;
 
-  let quantity = result => switch (Js.Json.classify(result)) {
-  | Js.Json.JSONNumber(value) => int_of_float(value)
-  | Js.Json.JSONString(hex) => int_of_float(Bn.toNumber(Bn.fromString(~base=16, strip0x(hex))))
-  | _ => 0
-  };
+  let quantity = result =>
+    switch (Js.Json.classify(result)) {
+    | Js.Json.JSONNumber(value) => int_of_float(value)
+    | Js.Json.JSONString(hex) =>
+      int_of_float(Bn.toNumber(Bn.fromString(~base=16, strip0x(hex))))
+    | _ => 0
+    };
 
   let nonce = quantity;
   let block = quantity;
-  let amount = result => switch(Js.Json.classify(result)) {
+  let amount = result =>
+    switch (Js.Json.classify(result)) {
     | Js.Json.JSONNumber(number) => Bn.fromFloat(number)
     | Js.Json.JSONString(hex) => Bn.fromString(~base=16, strip0x(hex))
     | _ => bnZero
-  };
-  let address = result : address => switch (Js.Json.decodeString(result)) {
+    };
+  let address = (result): address =>
+    switch (Js.Json.decodeString(result)) {
     | Some(address) => address
     | None => ""
     };
-  let accounts = result => switch (Js.Json.classify(result)) {
+  let accounts = result =>
+    switch (Js.Json.classify(result)) {
     | Js.Json.JSONArray(addresses) => Belt.Array.map(addresses, address)
     | _ => [||]
     };
-  let string = result => switch (Js.Json.decodeString(result)) {
+  let string = result =>
+    switch (Js.Json.decodeString(result)) {
     | Some(data) => data
     | None => ""
     };
-  let data = string
+  let data = string;
 };
 
 let addressMatcher = [%bs.re "/^0x[0-9a-fA-F]{40}$/"];

@@ -4,7 +4,7 @@ open Eth;
 open Belt.Result;
 
 [@bs.module "ganache-cli"]
-external ganache : unit => JsonRpc.Web3provider.t = "provider";
+external ganache: unit => JsonRpc.Web3provider.t = "provider";
 
 let provider = JsonRpc.wrapProvider(ganache());
 
@@ -61,10 +61,9 @@ describe("getAccounts", () =>
     getAccounts(provider)
     |> Repromise.map(result =>
          switch (result) {
-         | Ok(accounts) => {
+         | Ok(accounts) =>
            allAccounts := accounts;
            expect(Belt.Array.length(accounts)) |> toEqual(10);
-         }
          | Error(msg) => fail(msg)
          }
        )
@@ -161,32 +160,31 @@ describe("#gasPrice", () =>
 );
 
 describe("#call", () =>
-  testPromise("calls contract with no result", ()
-    =>
-      call(
-        ~provider,
-        ~tx=
-          Formats.transaction(
-            ~contract="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
-            (),
-          ),
-        (),
-      )
-      |> Repromise.map(result =>
-           switch (result) {
-           | Ok(result) => result |> expect |> toBe("0x")
-           | Error(msg) => fail(msg)
-           }
-         )
-      |> Repromise.Rejectable.toJsPromise
+  testPromise("calls contract with no result", () =>
+    call(
+      ~provider,
+      ~tx=
+        Formats.transaction(
+          ~contract="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
+          (),
+        ),
+      (),
     )
-    /* Re-enable once we have some actual contracts deployed */
-    /* testPromise("calls contract with data", () =>
-         call(~provider=provider, ~tx=Formats.transaction(~contract="0x0D8775F648430679A709E98d2b0Cb6250d2887EF", ~data="0x95d89b41", ()), ~from=Formats.Block(5768167), ())
-         |> Repromise.map(result => switch(result) {
-           | Ok(result) => result |> expect |> toBe("0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000034241540000000000000000000000000000000000000000000000000000000000")
-           | Error(msg) => fail(msg)
-         })
-         |> Repromise.Rejectable.toJsPromise
-       ); */
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(result) => result |> expect |> toBe("0x")
+         | Error(msg) => fail(msg)
+         }
+       )
+    |> Repromise.Rejectable.toJsPromise
+  )
 );
+/* Re-enable once we have some actual contracts deployed */
+/* testPromise("calls contract with data", () =>
+     call(~provider=provider, ~tx=Formats.transaction(~contract="0x0D8775F648430679A709E98d2b0Cb6250d2887EF", ~data="0x95d89b41", ()), ~from=Formats.Block(5768167), ())
+     |> Repromise.map(result => switch(result) {
+       | Ok(result) => result |> expect |> toBe("0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000034241540000000000000000000000000000000000000000000000000000000000")
+       | Error(msg) => fail(msg)
+     })
+     |> Repromise.Rejectable.toJsPromise
+   ); */
