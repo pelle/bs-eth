@@ -15,13 +15,13 @@ type gas = int;
 type eth = Bn.t;
 
 [@bs.deriving abstract]
-type transaction = {
+type tx = {
   [@bs.as "to"]
-  contract: address,
+  recipient: address,
   [@bs.optional]
   from: address,
   [@bs.optional]
-  gas,
+  gas: wei,
   [@bs.optional]
   gasPrice: wei,
   [@bs.optional]
@@ -33,18 +33,25 @@ type transaction = {
 };
 
 let strip0x = value => Js.String.replaceByRe([%bs.re "/^0x/"], "", value);
+let hexMatcher = Js.Re.test_([%bs.re "/^0x[0-9a-fA-F]+$/"]);
+let decimalMatcher = Js.Re.test_([%bs.re "/^[0-9]+$/"]);
+
 /* Js.String.sliceToEnd(value, ~from=2); */
 
 let bnZero = Bn.fromFloat(0.0);
 
 module Decode = {
-  open Belt.Result;
-
   let quantity = result =>
     switch (Js.Json.classify(result)) {
     | Js.Json.JSONNumber(value) => int_of_float(value)
     | Js.Json.JSONString(hex) =>
-      int_of_float(Bn.toNumber(Bn.fromString(~base=16, strip0x(hex))))
+      if (hexMatcher(hex)) {
+        int_of_float(Bn.toNumber(Bn.fromString(~base=16, strip0x(hex))));
+      } else if (decimalMatcher(hex)) {
+        int_of_float(Bn.toNumber(Bn.fromString(~base=10, hex)));
+      } else {
+        0;
+      }
     | _ => 0
     };
 
@@ -53,7 +60,8 @@ module Decode = {
   let amount = result =>
     switch (Js.Json.classify(result)) {
     | Js.Json.JSONNumber(number) => Bn.fromFloat(number)
-    | Js.Json.JSONString(hex) => Bn.fromString(~base=16, strip0x(hex))
+    | Js.Json.JSONString(hex) =>
+      hexMatcher(hex) ? Bn.fromString(~base=16, strip0x(hex)) : bnZero
     | _ => bnZero
     };
   let address = (result): address =>
@@ -80,12 +88,45 @@ let validateAddress = value => Js.Re.test_(addressMatcher, value);
 
 let toHex = amount => Js.Json.string(Printf.sprintf("0x%x", amount));
 
-let toDict = [%raw obj => {| return obj |}];
-
 module Encode = {
   let address = addr => Js.Json.string(addr);
+  let data = dat => Js.Json.string(dat);
+  let quantity = value =>
+    Js.Json.string(
+      "0x" ++ Bn.toString(~base=16, Bn.fromFloat(float_of_int(value))),
+    );
+  let amount = wei => Js.Json.string("0x" ++ Bn.toString(~base=16, wei));
   let block = (blk: blockNumber) => toHex(blk);
-  let transaction = (tx: transaction) => Js.Json.object_(toDict(tx));
+
+  let transaction = tx => {
+    let json: Js.Dict.t(Js.Json.t) = Js.Dict.empty();
+    Js.Dict.set(json, "to", address(recipientGet(tx)));
+    switch (valueGet(tx)) {
+    | Some(value) => Js.Dict.set(json, "value", amount(value))
+    | None => ()
+    };
+    switch (fromGet(tx)) {
+    | Some(value) => Js.Dict.set(json, "from", address(value))
+    | None => ()
+    };
+    switch (dataGet(tx)) {
+    | Some(value) => Js.Dict.set(json, "data", data(value))
+    | None => ()
+    };
+    switch (gasGet(tx)) {
+    | Some(value) => Js.Dict.set(json, "gas", amount(value))
+    | None => ()
+    };
+    switch (gasPriceGet(tx)) {
+    | Some(value) => Js.Dict.set(json, "gasPrice", amount(value))
+    | None => ()
+    };
+    switch (nonceGet(tx)) {
+    | Some(value) => Js.Dict.set(json, "nonce", quantity(value))
+    | None => ()
+    };
+    Js.Json.object_(json);
+  };
 
   let blockOrTag = value =>
     switch (value) {

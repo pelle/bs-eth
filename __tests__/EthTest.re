@@ -7,6 +7,8 @@ open Belt.Result;
 external ganache: unit => JsonRpc.Web3provider.t = "provider";
 
 let provider = JsonRpc.wrapProvider(ganache());
+/* let provider = JsonRpc.fetchProvider("http://localhost:7545"); */
+let infura = JsonRpc.fetchProvider("https://mainnet.infura.io/bs-eth");
 
 let randomAccount = "0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275";
 let coinbase = ref(randomAccount);
@@ -54,6 +56,17 @@ describe("#blockNumber", () => {
       |> Repromise.Rejectable.toJsPromise
     );
   });
+
+  testPromise("fetches mainnet block", () =>
+    blockNumber(infura)
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(block) => expect(block) |> toBeGreaterThanOrEqual(7670624)
+         | Error(msg) => fail(msg)
+         }
+       )
+    |> Repromise.Rejectable.toJsPromise
+  );
 });
 
 describe("getAccounts", () =>
@@ -110,11 +123,6 @@ describe("#getBalance", () => {
 });
 
 describe("#getTransactionCount", () => {
-  /* Don't know how to test this correclty yet  */
-  /* testPromise("invalid address", () =>
-       getBalance("0x1234", ()) |> Js.Promise.catch(error => expect(error) |> toBe(Formats.InvalidAddress("0x1234")) |> Js.Promise.resolve)
-     ); */
-
   testPromise("with 1 transaction", () =>
     getTransactionCount(~provider, ~account=coinbase^, ())
     |> Repromise.map(result =>
@@ -159,13 +167,37 @@ describe("#gasPrice", () =>
   )
 );
 
-describe("#call", () =>
+describe("#sendTransaction", () =>
+  testPromise("sends eth", () =>
+    sendTransaction(
+      ~provider,
+      ~tx=
+        Formats.tx(
+          ~recipient="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
+          ~from=coinbase^,
+          ~value=Bn.fromString(~base=10, "10000000000000000000"),
+          ~nonce=0,
+          (),
+        ),
+      (),
+    )
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(result) => String.length(result) |> expect |> toBe(66)
+         | Error(msg) => fail(msg)
+         }
+       )
+    |> Repromise.Rejectable.toJsPromise
+  )
+);
+
+describe("#call", () => {
   testPromise("calls contract with no result", () =>
     call(
       ~provider,
       ~tx=
-        Formats.transaction(
-          ~contract="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
+        Formats.tx(
+          ~recipient="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
           (),
         ),
       (),
@@ -177,14 +209,31 @@ describe("#call", () =>
          }
        )
     |> Repromise.Rejectable.toJsPromise
-  )
-);
-/* Re-enable once we have some actual contracts deployed */
-/* testPromise("calls contract with data", () =>
-     call(~provider=provider, ~tx=Formats.transaction(~contract="0x0D8775F648430679A709E98d2b0Cb6250d2887EF", ~data="0x95d89b41", ()), ~from=Formats.Block(5768167), ())
-     |> Repromise.map(result => switch(result) {
-       | Ok(result) => result |> expect |> toBe("0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000034241540000000000000000000000000000000000000000000000000000000000")
-       | Error(msg) => fail(msg)
-     })
-     |> Repromise.Rejectable.toJsPromise
-   ); */
+  );
+
+  testPromise("calls contract with data", () =>
+    call(
+      ~provider=infura,
+      ~tx=
+        Formats.tx(
+          ~recipient="0x0D8775F648430679A709E98d2b0Cb6250d2887EF",
+          ~data="0x95d89b41",
+          (),
+        ),
+      ~from=Formats.Block(5768167),
+      (),
+    )
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(result) =>
+           result
+           |> expect
+           |> toBe(
+                "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000034241540000000000000000000000000000000000000000000000000000000000",
+              )
+         | Error(msg) => fail(msg)
+         }
+       )
+    |> Repromise.Rejectable.toJsPromise
+  );
+});

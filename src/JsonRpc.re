@@ -1,5 +1,4 @@
 open Belt.Result;
-open Belt.Option;
 
 type requestPayload = Js.Dict.t(Js.Json.t);
 
@@ -37,7 +36,7 @@ let handleResponse = (json): rpcResult => {
 
 type provider = (string, Js.Array.t(Js.Json.t)) => Repromise.t(rpcResult);
 
-let fetchProvider = (url): provider => {
+let fetchProvider = (url): provider =>
   (method, params) =>
     ReFetch.fetchJson(url, toRequest(method, params))
     |> Repromise.map(response =>
@@ -46,7 +45,6 @@ let fetchProvider = (url): provider => {
          | Error(error) => Error(error)
          }
        );
-};
 
 module Web3provider = {
   type t;

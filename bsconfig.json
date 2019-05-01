@@ -6,21 +6,32 @@
     "in-source": true
   },
   "suffix": ".bs.js",
-  "bs-dependencies": ["@glennsl/bs-json", "bs-fetch", "@aantron/repromise", "bs-bn.js"],
-  "bs-dev-dependencies": ["@glennsl/bs-jest"],
+  "namespace": true,
+  "bsc-flags": [
+    "-bs-super-errors"
+  ],
+  "bs-dependencies": [
+    "@glennsl/bs-json",
+    "bs-fetch",
+    "@aantron/repromise",
+    "bs-bn.js"
+  ],
+  "bs-dev-dependencies": [
+    "@glennsl/bs-jest"
+  ],
   "sources": [
     {
       "dir": "src",
-      "subdirs" : true
+      "subdirs": true
     },
     {
       "dir": "__tests__",
       "type": "dev",
-      "subdirs" : true
+      "subdirs": true
     }
   ],
   "warnings": {
-    "error" : "+101"
+    "error": "+101"
   },
   "refmt": 3
 }

@@ -66,12 +66,32 @@ describe("Decode", () => {
     test("smallish number", () =>
       expect(Decode.quantity(Js.Json.string("0x4d2"))) |> toEqual(1234)
     );
+
     test("zero", () =>
       expect(Decode.quantity(Js.Json.string("0x0"))) |> toEqual(0)
     );
+
     test("largeish number", () =>
       expect(Decode.quantity(Js.Json.string("0x0D8779a0")))
       |> toEqual(226982304)
+    );
+
+    test("decimal number", () =>
+      expect(Decode.quantity(Js.Json.string("1023455")))
+      |> toEqual(1023455)
+    );
+
+    test("non hex number", () =>
+      expect(Decode.quantity(Js.Json.number(1234.0))) |> toEqual(1234)
+    );
+
+    test("invalid", () =>
+      expect(Decode.quantity(Js.Json.string("some stuff"))) |> toEqual(0)
+    );
+
+    test("invalid type", () =>
+      expect(Decode.quantity(Js.Json.array([|Js.Json.string("0x0")|])))
+      |> toEqual(0)
     );
   });
 
@@ -114,19 +134,6 @@ describe("Decode", () => {
       expect(Bn.toNumber(Decode.amount(Js.Json.string("0x0D8779a0"))))
       |> toEqual(226982304.0)
     );
-    test("large un-prefixed number", () =>
-      expect(
-        Bn.toString(
-          ~base=10,
-          Decode.amount(
-            Js.Json.string(
-              "6d5923e6449122cbbcc1b96093e0b7e4fd3e469f58daddae",
-            ),
-          ),
-        ),
-      )
-      |> toEqual("2681210161307671758365144741753253651834466456474188701102")
-    );
     test("large prefixed number", () =>
       expect(
         Bn.toString(
@@ -139,6 +146,21 @@ describe("Decode", () => {
         ),
       )
       |> toEqual("2681210161307671758365144741753253651834466456474188701102")
+    );
+
+    test("non hex number", () =>
+      expect(Bn.toNumber(Decode.amount(Js.Json.number(1234.0))))
+      |> toEqual(1234.0)
+    );
+
+    test("invalid hex", () =>
+      expect(Decode.amount(Js.Json.string("some stuff")))
+      |> toEqual(bnZero)
+    );
+
+    test("invalid type", () =>
+      expect(Decode.amount(Js.Json.array([|Js.Json.string("0x0")|])))
+      |> toEqual(bnZero)
     );
   });
 
