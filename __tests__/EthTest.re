@@ -11,16 +11,16 @@ let provider = JsonRpc.wrapProvider(ganache());
 let infura = JsonRpc.fetchProvider("https://mainnet.infura.io/bs-eth");
 
 let randomAccount = "0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275";
-let coinbase = ref(randomAccount);
+let primaryAddress = ref(randomAccount);
 let allAccounts = ref([|randomAccount|]);
 
 beforeAllPromise(() =>
-  getCoinbase(provider)
+  coinbase(provider)
   |> Repromise.map(result =>
        switch (result) {
        | Ok(address) =>
-         coinbase := address;
-         /* Js.log("address: " ++ coinbase^); */
+         primaryAddress := address;
+         /* Js.log("address: " ++ primaryAddress^); */
          ();
        | Error(msg) => Js.log(msg)
        }
@@ -42,7 +42,7 @@ describe("#blockNumber", () => {
 
   describe("updates block", () => {
     beforeAllPromise(() =>
-      newBlock(provider) |> Repromise.Rejectable.toJsPromise
+      mineBlock(provider) |> Repromise.Rejectable.toJsPromise
     );
 
     testPromise("updates block", () =>
@@ -69,9 +69,9 @@ describe("#blockNumber", () => {
   );
 });
 
-describe("getAccounts", () =>
+describe("accounts", () =>
   testPromise("fetches accounts", () =>
-    getAccounts(provider)
+    accounts(provider)
     |> Repromise.map(result =>
          switch (result) {
          | Ok(accounts) =>
@@ -84,9 +84,9 @@ describe("getAccounts", () =>
   )
 );
 
-describe("#getBalance", () => {
+describe("#balanceOf", () => {
   testPromise("invalid address", () =>
-    getBalance(~provider, ~account="0x1234", ())
+    balanceOf(~provider, ~account="0x1234", ())
     |> Repromise.map(result =>
          switch (result) {
          | Ok(_) => fail("this should not work")
@@ -97,7 +97,7 @@ describe("#getBalance", () => {
   );
 
   testPromise("empty Balance", () =>
-    getBalance(~provider, ~account=randomAccount, ())
+    balanceOf(~provider, ~account=randomAccount, ())
     |> Repromise.map(result =>
          switch (result) {
          | Ok(amount) => expect(Bn.toNumber(amount)) |> toEqual(0.0)
@@ -108,7 +108,12 @@ describe("#getBalance", () => {
   );
 
   testPromise("With Balance at block", () =>
-    getBalance(~provider, ~account=coinbase^, ~from=Formats.Block(0), ())
+    balanceOf(
+      ~provider,
+      ~account=primaryAddress^,
+      ~from=Formats.Block(0),
+      (),
+    )
     |> Repromise.map(result =>
          switch (result) {
          | Ok(amount) =>
@@ -124,7 +129,7 @@ describe("#getBalance", () => {
 
 describe("#getTransactionCount", () => {
   testPromise("with 1 transaction", () =>
-    getTransactionCount(~provider, ~account=coinbase^, ())
+    getTransactionCount(~provider, ~account=primaryAddress^, ())
     |> Repromise.map(result =>
          switch (result) {
          | Ok(result) => result |> expect |> toEqual(0)
@@ -137,7 +142,7 @@ describe("#getTransactionCount", () => {
   testPromise("with no transactions", () =>
     getTransactionCount(
       ~provider,
-      ~account=coinbase^,
+      ~account=primaryAddress^,
       ~from=Formats.Block(0),
       (),
     )
@@ -174,7 +179,7 @@ describe("#sendTransaction", () =>
       ~tx=
         Formats.tx(
           ~recipient="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
-          ~from=coinbase^,
+          ~from=primaryAddress^,
           ~value=Bn.fromString(~base=10, "10000000000000000000"),
           ~nonce=0,
           (),
@@ -187,6 +192,33 @@ describe("#sendTransaction", () =>
          | Error(msg) => fail(msg)
          }
        )
+    |> Repromise.Rejectable.toJsPromise
+  )
+);
+
+describe("#estimateGas", () =>
+  testPromise("receives estimation", () =>
+    estimateGas(
+      ~provider,
+      ~tx=
+        Formats.tx(
+          ~recipient="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
+          ~from=primaryAddress^,
+          ~value=Bn.fromString(~base=10, "10000000000000000000"),
+          ~nonce=1,
+          (),
+        ),
+      (),
+    )
+    |> Repromise.map(result
+         /* Js.log(result); */
+         =>
+           switch (result) {
+           | Ok(result) =>
+             Bn.toString(~base=10, result) |> expect |> toBe("21000")
+           | Error(msg) => fail(msg)
+           }
+         )
     |> Repromise.Rejectable.toJsPromise
   )
 );

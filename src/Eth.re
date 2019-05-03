@@ -1,7 +1,7 @@
 open Formats;
 open Belt.Result;
 
-let getCoinbase = (provider: JsonRpc.provider) =>
+let coinbase = (provider: JsonRpc.provider) =>
   provider("eth_coinbase", [||])
   |> Repromise.map(result =>
        switch (result) {
@@ -10,7 +10,7 @@ let getCoinbase = (provider: JsonRpc.provider) =>
        }
      );
 
-let getAccounts = (provider: JsonRpc.provider) =>
+let accounts = (provider: JsonRpc.provider) =>
   provider("eth_accounts", [||])
   |> Repromise.map(result =>
        switch (result) {
@@ -19,7 +19,7 @@ let getAccounts = (provider: JsonRpc.provider) =>
        }
      );
 
-let getBalance =
+let balanceOf =
     (~provider: JsonRpc.provider, ~account: address, ~from=Latest, ()) =>
   if (validateAddress(account)) {
     let params = [|Encode.address(account), Encode.blockOrTag(from)|];
@@ -78,23 +78,29 @@ let sendTransaction = (~provider: JsonRpc.provider, ~tx, ()) => {
      );
 };
 
-let call = (~provider: JsonRpc.provider, ~tx, ~from=Latest, ()) => {
-  let address = recipientGet(tx);
-  if (validateAddress(address)) {
-    let params = [|Encode.transaction(tx), Encode.blockOrTag(from)|];
-    provider("eth_call", params)
-    |> Repromise.map(result =>
-         switch (result) {
-         | Ok(data) => Ok(Decode.data(data))
-         | Error(msg) => Error(msg)
-         }
-       );
-  } else {
-    Repromise.resolved(Error("Invalid Address: " ++ address));
-  };
+let estimateGas = (~provider: JsonRpc.provider, ~tx, ~from=Latest, ()) => {
+  let params = [|Encode.transaction(tx), Encode.blockOrTag(from)|];
+  provider("eth_estimateGas", params)
+  |> Repromise.map(result =>
+       switch (result) {
+       | Ok(data) => Ok(Decode.amount(data))
+       | Error(msg) => Error(msg)
+       }
+     );
 };
 
-let newBlock = (provider: JsonRpc.provider) =>
+let call = (~provider: JsonRpc.provider, ~tx, ~from=Latest, ()) => {
+  let params = [|Encode.transaction(tx), Encode.blockOrTag(from)|];
+  provider("eth_call", params)
+  |> Repromise.map(result =>
+       switch (result) {
+       | Ok(data) => Ok(Decode.data(data))
+       | Error(msg) => Error(msg)
+       }
+     );
+};
+
+let mineBlock = (provider: JsonRpc.provider) =>
   provider("evm_mine", [||])
   |> Repromise.map(result =>
        switch (result) {
