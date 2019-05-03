@@ -3,12 +3,17 @@
   "description": "Web3 like library for ReasonML/Bucklescript",
   "version": "0.2.0",
   "scripts": {
-    "clean": "bsb -clean-world",
-    "build": "bsb -make-world",
-    "watch": "bsb -make-world -w",
-    "refmt": "bsrefmt --in-place **/*.re",
+    "clean": "./node_modules/.bin/bsb -clean-world",
+    "build": "./node_modules/.bin/bsb -make-world",
+    "build:dist": "yarn build && ./node_modules/.bin/microbundle",
+    "watch": "./node_modules/.bin/bsb -make-world -w",
+    "refmt": "./node_modules/.bin/bsrefmt --in-place **/*.re",
     "test": "yarn jest"
   },
+  "main": "dist/index.js",
+  "umd:main": "dist/index.umd.js",
+  "modules": "dist/index.mjs",
+  "source": "src/index.mjs",
   "keywords": [
     "BuckleScript",
     "ReasonML",
@@ -28,7 +33,8 @@
     "bs-platform": "^5.0.4",
     "ganache-cli": "^6.4.3",
     "husky": "^2.1.0",
-    "lint-staged": "^8.1.5"
+    "lint-staged": "^8.1.5",
+    "microbundle": "^0.11.0"
   },
   "dependencies": {
     "@aantron/repromise": "^0.6.0",
@@ -50,6 +56,7 @@
   },
   "files": [
     "src/",
+    "dist/",
     "README.md",
     "LICENSE",
     "__tests__/",
