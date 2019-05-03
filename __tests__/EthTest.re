@@ -4,11 +4,11 @@ open Eth;
 open Belt.Result;
 
 [@bs.module "ganache-cli"]
-external ganache: unit => JsonRpc.Web3provider.t = "provider";
+external ganache: unit => Providers.Web3provider.t = "provider";
 
-let provider = JsonRpc.wrapProvider(ganache());
-/* let provider = JsonRpc.fetchProvider("http://localhost:7545"); */
-let infura = JsonRpc.fetchProvider("https://mainnet.infura.io/bs-eth");
+let provider = Providers.web3(ganache());
+/* let provider = Providers.http("http://localhost:7545"); */
+let infura = Providers.http("https://mainnet.infura.io/bs-eth");
 
 let randomAccount = "0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275";
 let primaryAddress = ref(randomAccount);

@@ -1,10 +1,10 @@
 import * as Eth from './Eth.bs'
 import { bnZero, Decode, Encode } from './Formats.bs'
-import { wrapProvider, fetchProvider } from './JsonRpc.bs'
+import { web3, http } from './Providers.bs'
 
-const JsonRpc = {
-  wrapProvider,
-  fetchProvider
+const Providers = {
+  web3,
+  http
 }
 const Formats = {
   bnZero,
@@ -12,4 +12,4 @@ const Formats = {
   Encode
 }
 
-export { Eth, JsonRpc, Formats }
+export { Eth, Providers, Formats }

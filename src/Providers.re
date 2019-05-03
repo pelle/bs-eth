@@ -36,7 +36,7 @@ let handleResponse = (json): rpcResult => {
 
 type provider = (string, Js.Array.t(Js.Json.t)) => Repromise.t(rpcResult);
 
-let fetchProvider = (url): provider =>
+let http = (url): provider =>
   (method, params) =>
     ReFetch.fetchJson(url, toRequest(method, params))
     |> Repromise.map(response =>
@@ -52,9 +52,9 @@ module Web3provider = {
   [@bs.send] external sendAsync: (t, requestPayload, callback) => unit = "";
 };
 
-let wrapProvider = (web3: Web3provider.t, method, params) => {
+let web3 = (web3p: Web3provider.t, method, params) => {
   let (p, resolve_p) = Repromise.make();
-  Web3provider.sendAsync(web3, toRequest(method, params), (error, response) =>
+  Web3provider.sendAsync(web3p, toRequest(method, params), (error, response) =>
     resolve_p(
       switch (Js.Nullable.toOption(error), Js.Nullable.toOption(response)) {
       | (_, Some(result)) => handleResponse(result)

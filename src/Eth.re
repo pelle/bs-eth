@@ -1,7 +1,7 @@
 open Formats;
 open Belt.Result;
 
-let coinbase = (provider: JsonRpc.provider) =>
+let coinbase = (provider: Providers.provider) =>
   provider("eth_coinbase", [||])
   |> Repromise.map(result =>
        switch (result) {
@@ -10,7 +10,7 @@ let coinbase = (provider: JsonRpc.provider) =>
        }
      );
 
-let accounts = (provider: JsonRpc.provider) =>
+let accounts = (provider: Providers.provider) =>
   provider("eth_accounts", [||])
   |> Repromise.map(result =>
        switch (result) {
@@ -20,7 +20,7 @@ let accounts = (provider: JsonRpc.provider) =>
      );
 
 let balanceOf =
-    (~provider: JsonRpc.provider, ~account: address, ~from=Latest, ()) =>
+    (~provider: Providers.provider, ~account: address, ~from=Latest, ()) =>
   if (validateAddress(account)) {
     let params = [|Encode.address(account), Encode.blockOrTag(from)|];
     provider("eth_getBalance", params)
@@ -35,7 +35,7 @@ let balanceOf =
   };
 
 let getTransactionCount =
-    (~provider: JsonRpc.provider, ~account: address, ~from=Latest, ()) =>
+    (~provider: Providers.provider, ~account: address, ~from=Latest, ()) =>
   if (validateAddress(account)) {
     let params = [|Encode.address(account), Encode.blockOrTag(from)|];
     provider("eth_getTransactionCount", params)
@@ -49,7 +49,7 @@ let getTransactionCount =
     Repromise.resolved(Error("Invalid Address: " ++ account));
   };
 
-let blockNumber = (provider: JsonRpc.provider) =>
+let blockNumber = (provider: Providers.provider) =>
   provider("eth_blockNumber", [||])
   |> Repromise.map(result =>
        switch (result) {
@@ -58,7 +58,7 @@ let blockNumber = (provider: JsonRpc.provider) =>
        }
      );
 
-let gasPrice = (provider: JsonRpc.provider) =>
+let gasPrice = (provider: Providers.provider) =>
   provider("eth_gasPrice", [||])
   |> Repromise.map(result =>
        switch (result) {
@@ -67,7 +67,7 @@ let gasPrice = (provider: JsonRpc.provider) =>
        }
      );
 
-let sendTransaction = (~provider: JsonRpc.provider, ~tx, ()) => {
+let sendTransaction = (~provider: Providers.provider, ~tx, ()) => {
   let params = [|Encode.transaction(tx)|];
   provider("eth_sendTransaction", params)
   |> Repromise.map(result =>
@@ -78,7 +78,7 @@ let sendTransaction = (~provider: JsonRpc.provider, ~tx, ()) => {
      );
 };
 
-let estimateGas = (~provider: JsonRpc.provider, ~tx, ~from=Latest, ()) => {
+let estimateGas = (~provider: Providers.provider, ~tx, ~from=Latest, ()) => {
   let params = [|Encode.transaction(tx), Encode.blockOrTag(from)|];
   provider("eth_estimateGas", params)
   |> Repromise.map(result =>
@@ -89,7 +89,7 @@ let estimateGas = (~provider: JsonRpc.provider, ~tx, ~from=Latest, ()) => {
      );
 };
 
-let call = (~provider: JsonRpc.provider, ~tx, ~from=Latest, ()) => {
+let call = (~provider: Providers.provider, ~tx, ~from=Latest, ()) => {
   let params = [|Encode.transaction(tx), Encode.blockOrTag(from)|];
   provider("eth_call", params)
   |> Repromise.map(result =>
@@ -100,7 +100,7 @@ let call = (~provider: JsonRpc.provider, ~tx, ~from=Latest, ()) => {
      );
 };
 
-let mineBlock = (provider: JsonRpc.provider) =>
+let mineBlock = (provider: Providers.provider) =>
   provider("evm_mine", [||])
   |> Repromise.map(result =>
        switch (result) {
