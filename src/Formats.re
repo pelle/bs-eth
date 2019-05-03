@@ -17,7 +17,7 @@ type eth = Bn.t;
 [@bs.deriving abstract]
 type tx = {
   [@bs.as "to"]
-  recipient: address,
+  to_: address,
   [@bs.optional]
   from: address,
   [@bs.optional]
@@ -100,7 +100,7 @@ module Encode = {
 
   let transaction = tx => {
     let json: Js.Dict.t(Js.Json.t) = Js.Dict.empty();
-    Js.Dict.set(json, "to", address(recipientGet(tx)));
+    Js.Dict.set(json, "to", address(to_Get(tx)));
     switch (valueGet(tx)) {
     | Some(value) => Js.Dict.set(json, "value", amount(value))
     | None => ()

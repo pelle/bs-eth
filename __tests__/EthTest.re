@@ -178,7 +178,7 @@ describe("#sendTransaction", () =>
       ~provider,
       ~tx=
         Formats.tx(
-          ~recipient="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
+          ~to_="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
           ~from=primaryAddress^,
           ~value=Bn.fromString(~base=10, "10000000000000000000"),
           ~nonce=0,
@@ -202,7 +202,7 @@ describe("#estimateGas", () =>
       ~provider,
       ~tx=
         Formats.tx(
-          ~recipient="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
+          ~to_="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
           ~from=primaryAddress^,
           ~value=Bn.fromString(~base=10, "10000000000000000000"),
           ~nonce=1,
@@ -227,11 +227,7 @@ describe("#call", () => {
   testPromise("calls contract with no result", () =>
     call(
       ~provider,
-      ~tx=
-        Formats.tx(
-          ~recipient="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
-          (),
-        ),
+      ~tx=Formats.tx(~to_="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275", ()),
       (),
     )
     |> Repromise.map(result =>
@@ -248,7 +244,7 @@ describe("#call", () => {
       ~provider=infura,
       ~tx=
         Formats.tx(
-          ~recipient="0x0D8775F648430679A709E98d2b0Cb6250d2887EF",
+          ~to_="0x0D8775F648430679A709E98d2b0Cb6250d2887EF",
           ~data="0x95d89b41",
           (),
         ),
