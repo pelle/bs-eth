@@ -1,18 +1,21 @@
 # Really Basic ReasonML web3 like interface
 
-The goal is for this to support most common web3 functionality in ReasonML.
+The goal is for this to support most common web3 functionality in ReasonML as well as some less common functionality that I need.
 
 I am currently learning ReasonML and using this as an exercise at implementing something I understand fairly well (web3) using ReasonMl.
+
+This means the API is likely going to change a lot as I learn more about idiomatic ReasonML and fix stupid beginners mistakes.
 
 ## Roadmap
 
 - [x] Fetch based https provider interface
 - [x] Wrap javascript Web3 provider (a la metamask)
+- [ ] Basic Documentation
 - [ ] Most common JSON-RPC methods implemented (In bold below)
-- [ ] Implement complete wrappers for the JSON-RPC apps methods listed below
 - [ ] Solidity ABI codec in native reasonml
 - [ ] Add support for WebSocket provider
 - [ ] Filter support with support for some sort of reactive streams. Maybe [wonka](https://github.com/kitten/wonka)
+- [ ] Implement complete wrappers for the JSON-RPC apps methods listed below
 - [ ] [EIP 712 support](https://eips.ethereum.org/EIPS/eip-712)
 - [ ] Add RLP encoder to be able to encode transactions for signing
 - [ ] Allow signing in ReasonML using WASM

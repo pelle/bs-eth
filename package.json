@@ -1,5 +1,6 @@
 {
   "name": "bs-eth",
+  "description": "Web3 like library for ReasonML/Bucklescript",
   "version": "0.2.0",
   "scripts": {
     "clean": "bsb -clean-world",
@@ -9,9 +10,17 @@
     "test": "yarn jest"
   },
   "keywords": [
-    "BuckleScript"
+    "BuckleScript",
+    "ReasonML",
+    "Ethereum",
+    "Web3"
   ],
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pelle/bs-eth.git"
+  },
+  "homepage": "https://github.com/pelle/bs-eth",
+  "author": "Pelle Braendgaard <pelleb@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.8",
@@ -38,5 +47,12 @@
     "hooks": {
       "pre-commit": "lint-staged"
     }
-  }
+  },
+  "files": [
+    "src/",
+    "README.md",
+    "LICENSE",
+    "__tests__/",
+    "bsconfig.json"
+  ]
 }
