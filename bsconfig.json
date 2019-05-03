@@ -1,8 +1,8 @@
 {
   "name": "bs-eth",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "package-specs": {
-    "module": "commonjs",
+    "module": "es6",
     "in-source": true
   },
   "suffix": ".bs.js",
@@ -13,8 +13,7 @@
   "bs-dependencies": [
     "@glennsl/bs-json",
     "bs-fetch",
-    "@aantron/repromise",
-    "bs-bn.js"
+    "@aantron/repromise"
   ],
   "bs-dev-dependencies": [
     "@glennsl/bs-jest"

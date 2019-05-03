@@ -123,34 +123,34 @@ describe("Decode", () => {
 
   describe("amount", () => {
     test("smallish number", () =>
-      expect(Bn.toNumber(Decode.amount(Js.Json.string("0x4d2"))))
-      |> toEqual(1234.0)
+      expect(BigInt.toInt(Decode.amount(Js.Json.string("0x4d2"))))
+      |> toEqual(1234)
     );
     test("zero", () =>
-      expect(Bn.toNumber(Decode.amount(Js.Json.string("0x0"))))
-      |> toEqual(0.0)
+      expect(BigInt.toInt(Decode.amount(Js.Json.string("0x0"))))
+      |> toEqual(0)
     );
     test("largeish number", () =>
-      expect(Bn.toNumber(Decode.amount(Js.Json.string("0x0D8779a0"))))
-      |> toEqual(226982304.0)
+      expect(BigInt.toInt(Decode.amount(Js.Json.string("0x0D8779a0"))))
+      |> toEqual(226982304)
     );
     test("large prefixed number", () =>
       expect(
-        Bn.toString(
-          ~base=10,
+        BigInt.toString(
           Decode.amount(
             Js.Json.string(
               "0x6d5923e6449122cbbcc1b96093e0b7e4fd3e469f58daddae",
             ),
           ),
+          10,
         ),
       )
       |> toEqual("2681210161307671758365144741753253651834466456474188701102")
     );
 
     test("non hex number", () =>
-      expect(Bn.toNumber(Decode.amount(Js.Json.number(1234.0))))
-      |> toEqual(1234.0)
+      expect(BigInt.toInt(Decode.amount(Js.Json.number(1234.0))))
+      |> toEqual(1234)
     );
 
     test("invalid hex", () =>

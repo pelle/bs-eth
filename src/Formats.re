@@ -10,9 +10,9 @@ type blockOrTag =
 type address = string;
 type data = string;
 
-type wei = Bn.t;
+type wei = BigInt.t;
 type gas = int;
-type eth = Bn.t;
+type eth = BigInt.t;
 
 [@bs.deriving abstract]
 type tx = {
@@ -38,7 +38,7 @@ let decimalMatcher = Js.Re.test_([%bs.re "/^[0-9]+$/"]);
 
 /* Js.String.sliceToEnd(value, ~from=2); */
 
-let bnZero = Bn.fromFloat(0.0);
+let bnZero = BigInt.fromInt(0);
 
 module Decode = {
   let quantity = result =>
@@ -46,9 +46,9 @@ module Decode = {
     | Js.Json.JSONNumber(value) => int_of_float(value)
     | Js.Json.JSONString(hex) =>
       if (hexMatcher(hex)) {
-        int_of_float(Bn.toNumber(Bn.fromString(~base=16, strip0x(hex))));
+        BigInt.toInt(BigInt.fromString(strip0x(hex), 16));
       } else if (decimalMatcher(hex)) {
-        int_of_float(Bn.toNumber(Bn.fromString(~base=10, hex)));
+        BigInt.toInt(BigInt.fromString(strip0x(hex), 10));
       } else {
         0;
       }
@@ -59,9 +59,9 @@ module Decode = {
   let block = quantity;
   let amount = result =>
     switch (Js.Json.classify(result)) {
-    | Js.Json.JSONNumber(number) => Bn.fromFloat(number)
+    | Js.Json.JSONNumber(number) => BigInt.fromFloat(number)
     | Js.Json.JSONString(hex) =>
-      hexMatcher(hex) ? Bn.fromString(~base=16, strip0x(hex)) : bnZero
+      hexMatcher(hex) ? BigInt.fromString(strip0x(hex), 16) : bnZero
     | _ => bnZero
     };
   let address = (result): address =>
@@ -92,10 +92,8 @@ module Encode = {
   let address = addr => Js.Json.string(addr);
   let data = dat => Js.Json.string(dat);
   let quantity = value =>
-    Js.Json.string(
-      "0x" ++ Bn.toString(~base=16, Bn.fromFloat(float_of_int(value))),
-    );
-  let amount = wei => Js.Json.string("0x" ++ Bn.toString(~base=16, wei));
+    Js.Json.string("0x" ++ BigInt.toString(BigInt.fromInt(value), 16));
+  let amount = wei => Js.Json.string("0x" ++ BigInt.toString(wei, 16));
   let block = (blk: blockNumber) => toHex(blk);
 
   let transaction = tx => {

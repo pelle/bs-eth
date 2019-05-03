@@ -100,7 +100,7 @@ describe("#balanceOf", () => {
     balanceOf(~provider, ~account=randomAccount, ())
     |> Repromise.map(result =>
          switch (result) {
-         | Ok(amount) => expect(Bn.toNumber(amount)) |> toEqual(0.0)
+         | Ok(amount) => expect(BigInt.toInt(amount)) |> toEqual(0)
          | Error(msg) => fail(msg)
          }
        )
@@ -117,7 +117,7 @@ describe("#balanceOf", () => {
     |> Repromise.map(result =>
          switch (result) {
          | Ok(amount) =>
-           Bn.toString(~base=10, amount)
+           BigInt.toString(amount, 10)
            |> expect
            |> toEqual("100000000000000000000")
          | Error(msg) => fail(msg)
@@ -162,9 +162,9 @@ describe("#gasPrice", () =>
     |> Repromise.map(result =>
          switch (result) {
          | Ok(result) =>
-           Bn.toNumber(result)
+           BigInt.toInt(result)
            |> expect
-           |> toBeGreaterThanOrEqual(2000000000.0)
+           |> toBeGreaterThanOrEqual(2000000000)
          | Error(msg) => fail(msg)
          }
        )
@@ -180,7 +180,7 @@ describe("#sendTransaction", () =>
         Formats.tx(
           ~to_="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
           ~from=primaryAddress^,
-          ~value=Bn.fromString(~base=10, "10000000000000000000"),
+          ~value=BigInt.fromString("10000000000000000000", 10),
           ~nonce=0,
           (),
         ),
@@ -204,7 +204,7 @@ describe("#estimateGas", () =>
         Formats.tx(
           ~to_="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
           ~from=primaryAddress^,
-          ~value=Bn.fromString(~base=10, "10000000000000000000"),
+          ~value=BigInt.fromString("10000000000000000000", 10),
           ~nonce=1,
           (),
         ),
@@ -215,7 +215,7 @@ describe("#estimateGas", () =>
          =>
            switch (result) {
            | Ok(result) =>
-             Bn.toString(~base=10, result) |> expect |> toBe("21000")
+             BigInt.toString(result, 10) |> expect |> toBe("21000")
            | Error(msg) => fail(msg)
            }
          )
