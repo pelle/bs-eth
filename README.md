@@ -43,7 +43,7 @@ The RPC methods currently implemented are:
 - [ ] `eth_getFilterLogs`
 - [ ] `eth_getLogs`
 - [ ] `eth_getStorageAt`
-- [ ] **`eth_getTransactionByHash`**
+- [x] **`eth_getTransactionByHash` as `transactionByHash()`**
 - [ ] `eth_getTransactionByBlockHashAndIndex`
 - [ ] `eth_getTransactionByBlockNumberAndIndex`
 - [ ] `eth_getTransactionCount`

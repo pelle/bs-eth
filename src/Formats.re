@@ -1,4 +1,5 @@
 type blockNumber = int;
+type transactionIndex = int;
 type nonce = int;
 type quantityResponse = string;
 type blockOrTag =
@@ -9,6 +10,8 @@ type blockOrTag =
 
 type address = string;
 type data = string;
+type txHash = string;
+type blockHash = string;
 
 type wei = BigInt.t;
 type gas = int;
@@ -21,7 +24,7 @@ type tx = {
   [@bs.optional]
   from: address,
   [@bs.optional]
-  gas: wei,
+  gas,
   [@bs.optional]
   gasPrice: wei,
   [@bs.optional]
@@ -32,6 +35,20 @@ type tx = {
   nonce,
 };
 
+type postedTx = {
+  hash: txHash,
+  blockHash: option(blockHash),
+  blockNumber: option(blockNumber),
+  transactionIndex: option(transactionIndex),
+  to_: address,
+  from: address,
+  gas,
+  gasPrice: wei,
+  value: wei,
+  input: data,
+  nonce,
+};
+
 let strip0x = value => Js.String.replaceByRe([%bs.re "/^0x/"], "", value);
 let hexMatcher = Js.Re.test_([%bs.re "/^0x[0-9a-fA-F]+$/"]);
 let decimalMatcher = Js.Re.test_([%bs.re "/^[0-9]+$/"]);
@@ -39,14 +56,40 @@ let decimalMatcher = Js.Re.test_([%bs.re "/^[0-9]+$/"]);
 /* Js.String.sliceToEnd(value, ~from=2); */
 
 let bnZero = BigInt.fromInt(0);
+let hexToBigInt = hex => BigInt.fromString(strip0x(hex), 16);
+let hexToInt = hex => BigInt.toInt(hexToBigInt(hex));
 
+module ObjectDecoders = {
+  let decodeTransaction = (json: Js.Json.t): postedTx =>
+    Json.Decode.{
+      hash: json |> field("hash", string),
+      blockHash: json |> optional(field("blockHash", string)),
+      blockNumber:
+        switch (json |> optional(field("blockNumber", string))) {
+        | Some(val_) => Some(hexToInt(val_))
+        | None => None
+        },
+      transactionIndex:
+        switch (json |> optional(field("transactionIndex", string))) {
+        | Some(val_) => Some(hexToInt(val_))
+        | None => None
+        },
+      to_: json |> field("to", string),
+      from: json |> field("from", string),
+      gas: json |> field("gas", string) |> hexToInt,
+      gasPrice: json |> field("gasPrice", string) |> hexToBigInt,
+      value: json |> field("value", string) |> hexToBigInt,
+      input: json |> field("input", string),
+      nonce: json |> field("nonce", string) |> hexToInt,
+    };
+};
 module Decode = {
   let quantity = result =>
     switch (Js.Json.classify(result)) {
     | Js.Json.JSONNumber(value) => int_of_float(value)
     | Js.Json.JSONString(hex) =>
       if (hexMatcher(hex)) {
-        BigInt.toInt(BigInt.fromString(strip0x(hex), 16));
+        hexToInt(hex);
       } else if (decimalMatcher(hex)) {
         BigInt.toInt(BigInt.fromString(strip0x(hex), 10));
       } else {
@@ -60,8 +103,7 @@ module Decode = {
   let amount = result =>
     switch (Js.Json.classify(result)) {
     | Js.Json.JSONNumber(number) => BigInt.fromFloat(number)
-    | Js.Json.JSONString(hex) =>
-      hexMatcher(hex) ? BigInt.fromString(strip0x(hex), 16) : bnZero
+    | Js.Json.JSONString(hex) => hexMatcher(hex) ? hexToBigInt(hex) : bnZero
     | _ => bnZero
     };
   let address = (result): address =>
@@ -80,6 +122,7 @@ module Decode = {
     | None => ""
     };
   let data = string;
+  let transaction = ObjectDecoders.decodeTransaction;
 };
 
 let addressMatcher = [%bs.re "/^0x[0-9a-fA-F]{40}$/"];
@@ -112,7 +155,7 @@ module Encode = {
     | None => ()
     };
     switch (gasGet(tx)) {
-    | Some(value) => Js.Dict.set(json, "gas", amount(value))
+    | Some(value) => Js.Dict.set(json, "gas", quantity(value))
     | None => ()
     };
     switch (gasPriceGet(tx)) {

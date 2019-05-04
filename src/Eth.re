@@ -78,6 +78,16 @@ let sendTransaction = (~provider: Providers.provider, ~tx, ()) => {
      );
 };
 
+let transactionByHash =
+    (~provider: Providers.provider, ~txHash: Formats.txHash) =>
+  provider("eth_getTransactionByHash", [|Encode.data(txHash)|])
+  |> Repromise.map(result =>
+       switch (result) {
+       | Ok(data) => Ok(Decode.transaction(data))
+       | Error(msg) => Error(msg)
+       }
+     );
+
 let estimateGas = (~provider: Providers.provider, ~tx, ~from=Latest, ()) => {
   let params = [|Encode.transaction(tx), Encode.blockOrTag(from)|];
   provider("eth_estimateGas", params)

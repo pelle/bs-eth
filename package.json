@@ -8,6 +8,8 @@
     "build:dist": "yarn build && ./node_modules/.bin/microbundle",
     "watch": "./node_modules/.bin/bsb -make-world -w",
     "refmt": "./node_modules/.bin/bsrefmt --in-place **/*.re",
+    "prepublish": "yarn build:dist",
+    "prepare": "yarn build",
     "test": "yarn jest"
   },
   "main": "dist/index.js",

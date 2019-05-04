@@ -13,6 +13,7 @@ let infura = Providers.http("https://mainnet.infura.io/bs-eth");
 let randomAccount = "0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275";
 let primaryAddress = ref(randomAccount);
 let allAccounts = ref([|randomAccount|]);
+let lastTx = ref("0x");
 
 beforeAllPromise(() =>
   coinbase(provider)
@@ -188,7 +189,9 @@ describe("#sendTransaction", () =>
     )
     |> Repromise.map(result =>
          switch (result) {
-         | Ok(result) => String.length(result) |> expect |> toBe(66)
+         | Ok(result) =>
+           lastTx := result;
+           String.length(result) |> expect |> toBe(66);
          | Error(msg) => fail(msg)
          }
        )
@@ -210,15 +213,13 @@ describe("#estimateGas", () =>
         ),
       (),
     )
-    |> Repromise.map(result
-         /* Js.log(result); */
-         =>
-           switch (result) {
-           | Ok(result) =>
-             BigInt.toString(result, 10) |> expect |> toBe("21000")
-           | Error(msg) => fail(msg)
-           }
-         )
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(result) =>
+           BigInt.toString(result, 10) |> expect |> toBe("21000")
+         | Error(msg) => fail(msg)
+         }
+       )
     |> Repromise.Rejectable.toJsPromise
   )
 );
@@ -259,6 +260,22 @@ describe("#call", () => {
            |> toBe(
                 "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000034241540000000000000000000000000000000000000000000000000000000000",
               )
+         | Error(msg) => fail(msg)
+         }
+       )
+    |> Repromise.Rejectable.toJsPromise
+  );
+});
+
+describe("#transactionByHash", () => {
+  let pluckFrom = (p: Formats.postedTx) => p.from;
+
+  testPromise("fetches TX", () =>
+    transactionByHash(~provider, ~txHash=lastTx^)
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(resp) =>
+           resp |> pluckFrom |> expect |> toEqual(primaryAddress^)
          | Error(msg) => fail(msg)
          }
        )
