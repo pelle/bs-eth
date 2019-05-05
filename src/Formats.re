@@ -49,30 +49,61 @@ type postedTx = {
   input: data,
   nonce,
 };
-/*
- "Block": {
-       "__required": [],
-       "number": "Q",
-       "hash": "D32",
-       "parentHash": "D32",
-       "nonce": "D",
-       "sha3Uncles": "D",
-       "logsBloom": "D",
-       "transactionsRoot": "D",
-       "stateRoot": "D",
-       "receiptsRoot": "D",
-       "miner": "D",
-       "difficulty": "Q",
-       "totalDifficulty": "Q",
-       "extraData": "D",
-       "size": "Q",
-       "gasLimit": "Q",
-       "gasUsed": "Q",
-       "timestamp": "Q",
-       "transactions": ["DATA|Transaction"],
-       "uncles": ["D"]
-     },
- */
+/* "FilterChange": {
+     "__required": [],
+     "removed": "B",
+     "logIndex": "Q",
+     "transactionIndex": "Q",
+     "transactionHash": "D32",
+     "blockHash": "D32",
+     "blockNumber": "Q",
+     "address": "D20",
+     "data": "Array|DATA",
+     "topics": ["D"]
+   },*/
+type filterChange = {
+  removed: bool,
+  logIndex: quantity,
+  transactionHash: txHash,
+  blockHash,
+  blockNumber,
+  transactionIndex,
+  address,
+  data,
+  topics: array(data),
+};
+/* "Receipt": {
+     "__required": [],
+     "transactionHash": "D32",
+     "transactionIndex": "Q",
+     "blockHash": "D32",
+     "blockNumber": "Q",
+     "cumulativeGasUsed": "Q",
+     "gasUsed": "Q",
+     "contractAddress": "D20",
+     "logs": ["FilterChange"]
+   }, */
+
+type txStatus =
+  | TxPending
+  | TxNotFound
+  | TxSuccess
+  | TxFailed;
+
+type receipt = {
+  transactionHash: txHash,
+  blockHash,
+  blockNumber,
+  transactionIndex,
+  to_: address,
+  from: address,
+  gasUsed: gas,
+  cumulativeGasUsed: gas,
+  contractAddress: option(address),
+  logs: array(filterChange),
+  status: txStatus,
+};
+
 type blockTx =
   | TxHash(txHash)
   | Tx(postedTx)
@@ -109,8 +140,42 @@ let decimalMatcher = Js.Re.test_([%bs.re "/^[0-9]+$/"]);
 let bnZero = BigInt.fromInt(0);
 let hexToBigInt = hex => BigInt.fromString(strip0x(hex), 16);
 let hexToInt = hex => BigInt.toInt(hexToBigInt(hex));
+let toStatus = hex =>
+  switch (hex) {
+  | "0x1" => TxSuccess
+  | _ => TxFailed
+  };
 
 module ObjectDecoders = {
+  let filterData = (json: Js.Json.t): filterChange =>
+    Json.Decode.{
+      removed: json |> field("removed", bool),
+      logIndex: json |> field("logIndex", string) |> hexToInt,
+      transactionHash: json |> field("transactionHash", string),
+      blockHash: json |> field("blockHash", string),
+      blockNumber: json |> field("blockNumber", string) |> hexToInt,
+      transactionIndex: json |> field("transactionIndex", string) |> hexToInt,
+      address: json |> field("address", string),
+      data: json |> field("data", string),
+      topics: json |> field("topics", array(string)),
+    };
+
+  let receipt = (json: Js.Json.t): receipt =>
+    Json.Decode.{
+      transactionHash: json |> field("transactionHash", string),
+      blockHash: json |> field("blockHash", string),
+      blockNumber: json |> field("blockNumber", string) |> hexToInt,
+      transactionIndex: json |> field("transactionIndex", string) |> hexToInt,
+      to_: json |> field("to", string),
+      from: json |> field("from", string),
+      gasUsed: json |> field("gasUsed", string) |> hexToInt,
+      cumulativeGasUsed:
+        json |> field("cumulativeGasUsed", string) |> hexToInt,
+      contractAddress: json |> optional(field("contractAddress", string)),
+      logs: json |> field("logs", array(filterData)),
+      status: json |> field("status", string) |> toStatus,
+    };
+
   let transaction = (json: Js.Json.t): postedTx =>
     Json.Decode.{
       hash: json |> field("hash", string),
@@ -204,6 +269,7 @@ module Decode = {
     };
   let data = string;
   let transaction = ObjectDecoders.transaction;
+  let receipt = ObjectDecoders.receipt;
   let block = ObjectDecoders.block;
   let bool = (result): bool =>
     switch (Js.Json.classify(result)) {

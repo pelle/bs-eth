@@ -6,12 +6,36 @@ I am currently learning ReasonML and using this as an exercise at implementing s
 
 This means the API is likely going to change a lot as I learn more about idiomatic ReasonML and fix stupid beginners mistakes.
 
+## Setting up a Provider
+
+There is currently support for the following providers that both live in the `Providers` namespace:
+
+- `Providers.web3(web3provider)` which wraps an existing web3 provider eg. MetaMask
+- `Providers.http(url)` which is configured with a url to a http based provider like [infura](https://infura.io)
+
+Once you have a provider you pass it as a parameter to all the functions in the `Eth` namespace.
+
+```reasonml
+let provider = Providers.http("https://mainnet.infura.io/bs-eth");
+netVersion(provider)
+|> Repromise.wait(result => switch (result) {
+| Ok(netId) => Js.log("we are on the " ++ string_of_int(netId) ++ " chain")
+| Error(msg) => Js.log(msg)
+});
+```
+
+## Calling functions
+
+All functions in the `Eth` module return typed [`Belt.Result`](https://bucklescript.github.io/bucklescript/api/Belt.Result.html) in a [Repromise](https://aantron.github.io/repromise/). So instead of looking out for rejected calls, do a pattern match.
+
+See the [List of Methods](#ethereum-json-rpc-implemented-methods) implemented for more details.
+
 ## Roadmap
 
 - [x] Fetch based https provider interface
 - [x] Wrap javascript Web3 provider (a la metamask)
-- [ ] Basic Documentation
-- [ ] Most common JSON-RPC methods implemented (In bold below)
+- [x] Most common JSON-RPC methods implemented (In bold below)
+- [x] Basic Documentation
 - [ ] Solidity ABI codec in native reasonml
 - [ ] Add support for WebSocket provider
 - [ ] Filter support with support for some sort of reactive streams. Maybe [wonka](https://github.com/kitten/wonka)
@@ -20,7 +44,6 @@ This means the API is likely going to change a lot as I learn more about idiomat
 - [ ] Add RLP encoder to be able to encode transactions for signing
 - [ ] Allow signing in ReasonML using WASM
 - [ ] Support for bs-native
-
 
 ### Ethereum JSON-RPC Implemented Methods
 
@@ -47,7 +70,7 @@ The RPC methods currently implemented are:
 - [ ] `eth_getTransactionByBlockHashAndIndex`
 - [ ] `eth_getTransactionByBlockNumberAndIndex`
 - [x] **`eth_getTransactionCount` as `transactionCount()`**
-- [ ] **`eth_getTransactionReceipt` as `transactionReceipt()**
+- [x] **`eth_getTransactionReceipt` as `transactionReceipt()**
 - [ ] `eth_hashrate`
 - [ ] `eth_mining`
 - [ ] `eth_newBlockFilter`

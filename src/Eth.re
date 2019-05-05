@@ -99,6 +99,16 @@ let transactionByHash =
        }
      );
 
+let transactionReceipt =
+    (~provider: Providers.provider, ~txHash: Formats.txHash) =>
+  provider("eth_getTransactionReceipt", [|Encode.data(txHash)|])
+  |> Repromise.map(result =>
+       switch (result) {
+       | Ok(data) => Ok(Decode.receipt(data))
+       | Error(msg) => Error(msg)
+       }
+     );
+
 let estimateGas = (~provider: Providers.provider, ~tx, ~from=Latest, ()) => {
   let params = [|Encode.transaction(tx), Encode.blockOrTag(from)|];
   provider("eth_estimateGas", params)

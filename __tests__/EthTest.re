@@ -305,7 +305,23 @@ describe("#transactionByHash", () =>
     |> Repromise.map(result =>
          switch (result) {
          | Ok(resp) =>
-           resp.Formats.from |> expect |> toEqual(primaryAddress^)
+           let pt: Formats.postedTx = resp;
+           pt.from |> expect |> toEqual(primaryAddress^);
+         | Error(msg) => fail(msg)
+         }
+       )
+    |> Repromise.Rejectable.toJsPromise
+  )
+);
+
+describe("#transactionReceipt", () =>
+  testPromise("fetches TX Receipt", () =>
+    transactionReceipt(~provider, ~txHash=lastTx^)
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(resp) =>
+           let pt: Formats.receipt = resp;
+           pt.from |> expect |> toEqual(primaryAddress^);
          | Error(msg) => fail(msg)
          }
        )
