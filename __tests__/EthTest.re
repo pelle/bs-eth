@@ -10,7 +10,7 @@ let provider = Providers.web3(ganache());
 /* let provider = Providers.http("http://localhost:7545"); */
 let infura = Providers.http("https://mainnet.infura.io/bs-eth");
 
-let randomAccount = "0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275";
+let randomAccount = "0x2036c6cd85692f0fb2c26e6c6b2eced9e4478dfd";
 let primaryAddress = ref(randomAccount);
 let allAccounts = ref([|randomAccount|]);
 let lastTx = ref("0x");
@@ -128,9 +128,9 @@ describe("#balanceOf", () => {
   );
 });
 
-describe("#getTransactionCount", () => {
+describe("#transactionCount", () => {
   testPromise("with 1 transaction", () =>
-    getTransactionCount(~provider, ~account=primaryAddress^, ())
+    transactionCount(~provider, ~account=primaryAddress^, ())
     |> Repromise.map(result =>
          switch (result) {
          | Ok(result) => result |> expect |> toEqual(0)
@@ -141,7 +141,7 @@ describe("#getTransactionCount", () => {
   );
 
   testPromise("with no transactions", () =>
-    getTransactionCount(
+    transactionCount(
       ~provider,
       ~account=primaryAddress^,
       ~from=Formats.Block(0),
@@ -179,13 +179,12 @@ describe("#sendTransaction", () =>
       ~provider,
       ~tx=
         Formats.tx(
-          ~to_="0x160c5ce58e2cc4fe7cc45a9dd569a10083b2a275",
+          ~to_=randomAccount,
           ~from=primaryAddress^,
           ~value=BigInt.fromString("10000000000000000000", 10),
           ~nonce=0,
           (),
         ),
-      (),
     )
     |> Repromise.map(result =>
          switch (result) {
@@ -198,6 +197,39 @@ describe("#sendTransaction", () =>
     |> Repromise.Rejectable.toJsPromise
   )
 );
+
+describe("#sendRawTransaction", () => {
+  testPromise("sends eth", () =>
+    sendRawTransaction(
+      ~provider,
+      ~tx=
+        "0xf864808207d08301e0f3942036c6cd85692f0fb2c26e6c6b2eced9e4478dfd8204cf001ca0f5d033ee6f1be4cca13379137234e7d1e620c4d268c679c560d5609dac6b3f15a06738dc64a3d7f4f419461b3dbfb0f0a26433ac4adbc45d636ba5bc81dc9f1028",
+    )
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(hash) =>
+           hash
+           |> expect
+           |> toEqual(
+                "0x218f5bab3339d03f52a202fb571c4a259482569163af0b61396b9d4b2e169985",
+              )
+         | Error(msg) => fail(msg)
+         }
+       )
+    |> Repromise.Rejectable.toJsPromise
+  );
+
+  testPromise("fails with invalid transaction", () =>
+    sendRawTransaction(~provider, ~tx="0x0")
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(_) => fail("Bad transaction should not be accepted")
+         | Error(msg) => msg |> expect |> toEqual("Invalid Signature")
+         }
+       )
+    |> Repromise.Rejectable.toJsPromise
+  );
+});
 
 describe("#estimateGas", () =>
   testPromise("receives estimation", () =>
@@ -314,3 +346,16 @@ describe("#blocksByXXX", () => {
     }
   );
 });
+
+describe("#netVersion", () =>
+  testPromise("fetches version", () =>
+    netVersion(infura)
+    |> Repromise.map(result =>
+         switch (result) {
+         | Ok(netId) => expect(netId) |> toEqual(1)
+         | Error(msg) => fail(msg)
+         }
+       )
+    |> Repromise.Rejectable.toJsPromise
+  )
+);

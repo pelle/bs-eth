@@ -34,7 +34,7 @@ let balanceOf =
     Repromise.resolved(Error("Invalid Address: " ++ account));
   };
 
-let getTransactionCount =
+let transactionCount =
     (~provider: Providers.provider, ~account: address, ~from=Latest, ()) =>
   if (validateAddress(account)) {
     let params = [|Encode.address(account), Encode.blockOrTag(from)|];
@@ -67,9 +67,20 @@ let gasPrice = (provider: Providers.provider) =>
        }
      );
 
-let sendTransaction = (~provider: Providers.provider, ~tx, ()) => {
+let sendTransaction = (~provider: Providers.provider, ~tx) => {
   let params = [|Encode.transaction(tx)|];
   provider("eth_sendTransaction", params)
+  |> Repromise.map(result =>
+       switch (result) {
+       | Ok(data) => Ok(Decode.data(data))
+       | Error(msg) => Error(msg)
+       }
+     );
+};
+
+let sendRawTransaction = (~provider: Providers.provider, ~tx: Formats.data) => {
+  let params = [|Encode.data(tx)|];
+  provider("eth_sendRawTransaction", params)
   |> Repromise.map(result =>
        switch (result) {
        | Ok(data) => Ok(Decode.data(data))
@@ -149,6 +160,15 @@ let blockByNumber =
   |> Repromise.map(result =>
        switch (result) {
        | Ok(data) => Ok(Decode.block(data))
+       | Error(msg) => Error(msg)
+       }
+     );
+
+let netVersion = (provider: Providers.provider) =>
+  provider("net_version", [||])
+  |> Repromise.map(result =>
+       switch (result) {
+       | Ok(data) => Ok(Decode.quantity(data))
        | Error(msg) => Error(msg)
        }
      );

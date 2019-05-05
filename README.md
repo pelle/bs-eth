@@ -37,7 +37,7 @@ The RPC methods currently implemented are:
 - [x] **`eth_getBlockByHash` as `blockByHash`**
 - [ ] `eth_getBlockTransactionCountByHash`
 - [ ] `eth_getBlockTransactionCountByNumber`
-- [ ] `eth_getCode` (only supports block number “latest”)
+- [ ] `eth_getCode`
 - [ ] `eth_getCompilers`
 - [ ] `eth_getFilterChanges`
 - [ ] `eth_getFilterLogs`
@@ -46,26 +46,22 @@ The RPC methods currently implemented are:
 - [x] **`eth_getTransactionByHash` as `transactionByHash()`**
 - [ ] `eth_getTransactionByBlockHashAndIndex`
 - [ ] `eth_getTransactionByBlockNumberAndIndex`
-- [ ] `eth_getTransactionCount`
-- [ ] **`eth_getTransactionReceipt`**
+- [x] **`eth_getTransactionCount` as `transactionCount()`**
+- [ ] **`eth_getTransactionReceipt` as `transactionReceipt()**
 - [ ] `eth_hashrate`
 - [ ] `eth_mining`
 - [ ] `eth_newBlockFilter`
 - [ ] `eth_newFilter` (includes log/event filters)
 - [ ] `eth_protocolVersion`
 - [x] **`eth_sendTransaction` as `sendTransaction()`**
-- [ ] **`eth_sendRawTransaction`**
+- [x] **`eth_sendRawTransaction` as `sendRawTransaction()`**
 - [ ] `eth_subscribe` (only for websocket connections. "syncing" subscriptions are not yet supported)
 - [ ] `eth_unsubscribe` (only for websocket connections. "syncing" subscriptions are not yet supported)
 - [ ] `eth_syncing`
 - [ ] `eth_uninstallFilter`
 - [ ] `net_listening`
 - [ ] `net_peerCount`
-- [ ] `net_version`
-- [ ] `miner_start`
-- [ ] `miner_stop`
-- [ ] `rpc_modules`
-- [ ] **`web3_clientVersion`**
+- [x] **`net_version` as `netVersion()`**
 
 Non-Standard [ganache-cli](https://github.com/trufflesuite/ganache-cli) methods:
 
