@@ -53,7 +53,7 @@ let blockNumber = (provider: Providers.provider) =>
   provider("eth_blockNumber", [||])
   |> Repromise.map(result =>
        switch (result) {
-       | Ok(data) => Ok(Decode.block(data))
+       | Ok(data) => Ok(Decode.blockNumber(data))
        | Error(msg) => Error(msg)
        }
      );
@@ -115,6 +115,40 @@ let mineBlock = (provider: Providers.provider) =>
   |> Repromise.map(result =>
        switch (result) {
        | Ok(data) => Ok(Decode.string(data))
+       | Error(msg) => Error(msg)
+       }
+     );
+
+let blockByHash =
+    (
+      ~provider: Providers.provider,
+      ~blockHash: Formats.blockHash,
+      ~deep: bool,
+    ) =>
+  provider(
+    "eth_getBlockByHash",
+    [|Encode.data(blockHash), Encode.bool(deep)|],
+  )
+  |> Repromise.map(result =>
+       switch (result) {
+       | Ok(data) => Ok(Decode.block(data))
+       | Error(msg) => Error(msg)
+       }
+     );
+
+let blockByNumber =
+    (
+      ~provider: Providers.provider,
+      ~blockNumber: Formats.blockNumber,
+      ~deep: bool,
+    ) =>
+  provider(
+    "eth_getBlockByNumber",
+    [|Encode.quantity(blockNumber), Encode.bool(deep)|],
+  )
+  |> Repromise.map(result =>
+       switch (result) {
+       | Ok(data) => Ok(Decode.block(data))
        | Error(msg) => Error(msg)
        }
      );

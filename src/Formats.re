@@ -1,7 +1,7 @@
 type blockNumber = int;
 type transactionIndex = int;
 type nonce = int;
-type quantityResponse = string;
+type quantity = int;
 type blockOrTag =
   | Block(blockNumber)
   | Earliest
@@ -16,6 +16,7 @@ type blockHash = string;
 type wei = BigInt.t;
 type gas = int;
 type eth = BigInt.t;
+type timestamp = int;
 
 [@bs.deriving abstract]
 type tx = {
@@ -48,6 +49,56 @@ type postedTx = {
   input: data,
   nonce,
 };
+/*
+ "Block": {
+       "__required": [],
+       "number": "Q",
+       "hash": "D32",
+       "parentHash": "D32",
+       "nonce": "D",
+       "sha3Uncles": "D",
+       "logsBloom": "D",
+       "transactionsRoot": "D",
+       "stateRoot": "D",
+       "receiptsRoot": "D",
+       "miner": "D",
+       "difficulty": "Q",
+       "totalDifficulty": "Q",
+       "extraData": "D",
+       "size": "Q",
+       "gasLimit": "Q",
+       "gasUsed": "Q",
+       "timestamp": "Q",
+       "transactions": ["DATA|Transaction"],
+       "uncles": ["D"]
+     },
+ */
+type blockTx =
+  | TxHash(txHash)
+  | Tx(postedTx)
+  | None;
+
+type block = {
+  number: blockNumber,
+  hash: blockHash,
+  parentHash: option(blockHash),
+  nonce: data,
+  sha3Uncles: data,
+  logsBloom: data,
+  transactionsRoot: data,
+  stateRoot: data,
+  receiptsRoot: data,
+  miner: address,
+  difficulty: quantity,
+  totalDifficulty: quantity,
+  extraData: data,
+  size: quantity,
+  gasLimit: gas,
+  gasUsed: gas,
+  timestamp,
+  transactions: array(blockTx),
+  uncles: array(data),
+};
 
 let strip0x = value => Js.String.replaceByRe([%bs.re "/^0x/"], "", value);
 let hexMatcher = Js.Re.test_([%bs.re "/^0x[0-9a-fA-F]+$/"]);
@@ -60,7 +111,7 @@ let hexToBigInt = hex => BigInt.fromString(strip0x(hex), 16);
 let hexToInt = hex => BigInt.toInt(hexToBigInt(hex));
 
 module ObjectDecoders = {
-  let decodeTransaction = (json: Js.Json.t): postedTx =>
+  let transaction = (json: Js.Json.t): postedTx =>
     Json.Decode.{
       hash: json |> field("hash", string),
       blockHash: json |> optional(field("blockHash", string)),
@@ -82,6 +133,36 @@ module ObjectDecoders = {
       input: json |> field("input", string),
       nonce: json |> field("nonce", string) |> hexToInt,
     };
+
+  let blockTxDecoder = json =>
+    switch (Js.Json.classify(json)) {
+    | Js.Json.JSONString(hash) => TxHash(hash)
+    | Js.Json.JSONObject(_) => Tx(transaction(json))
+    | _ => None
+    };
+
+  let block = (json: Js.Json.t): block =>
+    Json.Decode.{
+      number: json |> field("number", string) |> hexToInt,
+      hash: json |> field("hash", string),
+      parentHash: json |> optional(field("parentHash", string)),
+      nonce: json |> field("nonce", string),
+      sha3Uncles: json |> field("sha3Uncles", string),
+      logsBloom: json |> field("logsBloom", string),
+      transactionsRoot: json |> field("transactionsRoot", string),
+      stateRoot: json |> field("stateRoot", string),
+      receiptsRoot: json |> field("receiptsRoot", string),
+      miner: json |> field("miner", string),
+      difficulty: json |> field("difficulty", string) |> hexToInt,
+      totalDifficulty: json |> field("totalDifficulty", string) |> hexToInt,
+      extraData: json |> field("extraData", string),
+      size: json |> field("size", string) |> hexToInt,
+      gasLimit: json |> field("gasLimit", string) |> hexToInt,
+      gasUsed: json |> field("gasUsed", string) |> hexToInt,
+      timestamp: json |> field("timestamp", string) |> hexToInt,
+      transactions: json |> field("transactions", array(blockTxDecoder)),
+      uncles: json |> field("uncles", array(string)),
+    };
 };
 module Decode = {
   let quantity = result =>
@@ -99,7 +180,7 @@ module Decode = {
     };
 
   let nonce = quantity;
-  let block = quantity;
+  let blockNumber = quantity;
   let amount = result =>
     switch (Js.Json.classify(result)) {
     | Js.Json.JSONNumber(number) => BigInt.fromFloat(number)
@@ -122,7 +203,13 @@ module Decode = {
     | None => ""
     };
   let data = string;
-  let transaction = ObjectDecoders.decodeTransaction;
+  let transaction = ObjectDecoders.transaction;
+  let block = ObjectDecoders.block;
+  let bool = (result): bool =>
+    switch (Js.Json.classify(result)) {
+    | Js.Json.JSONTrue => true
+    | _ => false
+    };
 };
 
 let addressMatcher = [%bs.re "/^0x[0-9a-fA-F]{40}$/"];
@@ -137,7 +224,8 @@ module Encode = {
   let quantity = value =>
     Js.Json.string("0x" ++ BigInt.toString(BigInt.fromInt(value), 16));
   let amount = wei => Js.Json.string("0x" ++ BigInt.toString(wei, 16));
-  let block = (blk: blockNumber) => toHex(blk);
+  let blockNumber = (blk: blockNumber) => toHex(blk);
+  let bool = b => Js.Json.boolean(b);
 
   let transaction = tx => {
     let json: Js.Dict.t(Js.Json.t) = Js.Dict.empty();

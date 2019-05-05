@@ -267,18 +267,50 @@ describe("#call", () => {
   );
 });
 
-describe("#transactionByHash", () => {
-  let pluckFrom = (p: Formats.postedTx) => p.from;
-
+describe("#transactionByHash", () =>
   testPromise("fetches TX", () =>
     transactionByHash(~provider, ~txHash=lastTx^)
     |> Repromise.map(result =>
          switch (result) {
          | Ok(resp) =>
-           resp |> pluckFrom |> expect |> toEqual(primaryAddress^)
+           resp.Formats.from |> expect |> toEqual(primaryAddress^)
          | Error(msg) => fail(msg)
          }
        )
     |> Repromise.Rejectable.toJsPromise
+  )
+);
+
+describe("#blocksByXXX", () => {
+  let lastBlock = ref(None);
+
+  testPromise("fetches Block by number", () =>
+    blockByNumber(~provider, ~blockNumber=2, ~deep=true)
+    |> Repromise.map(blockResult =>
+         switch (blockResult) {
+         | Ok(blk) =>
+           lastBlock := Some(blk);
+           blk.Formats.number |> expect |> toEqual(2);
+         | Error(msg) => fail(msg)
+         }
+       )
+    |> Repromise.Rejectable.toJsPromise
+  );
+
+  testPromise("fetches Block by hash", () =>
+    switch (lastBlock^) {
+    | Some(blk1) =>
+      blockByHash(~provider, ~blockHash=blk1.Formats.hash, ~deep=true)
+      |> Repromise.map(blockResult =>
+           switch (blockResult) {
+           | Ok(blk) => blk |> expect |> toEqual(blk1)
+           | Error(msg) => fail(msg)
+           }
+         )
+      |> Repromise.Rejectable.toJsPromise
+    | None =>
+      Repromise.Rejectable.resolved(fail("did not have ablock"))
+      |> Repromise.Rejectable.toJsPromise
+    }
   );
 });

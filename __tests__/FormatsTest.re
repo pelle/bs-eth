@@ -25,11 +25,11 @@ describe("Encode", () => {
 
   describe("#blockOrTag", () => {
     test("small number", () =>
-      expect(Encode.block(1234)) |> toEqual(Js.Json.string("0x4d2"))
+      expect(Encode.blockNumber(1234)) |> toEqual(Js.Json.string("0x4d2"))
     );
 
     test("zero", () =>
-      expect(Encode.block(0)) |> toEqual(Js.Json.string("0x0"))
+      expect(Encode.blockNumber(0)) |> toEqual(Js.Json.string("0x0"))
     );
   });
 
@@ -110,13 +110,13 @@ describe("Decode", () => {
 
   describe("block", () => {
     test("smallish number", () =>
-      expect(Decode.block(Js.Json.string("0x4d2"))) |> toEqual(1234)
+      expect(Decode.blockNumber(Js.Json.string("0x4d2"))) |> toEqual(1234)
     );
     test("zero", () =>
-      expect(Decode.block(Js.Json.string("0x0"))) |> toEqual(0)
+      expect(Decode.blockNumber(Js.Json.string("0x0"))) |> toEqual(0)
     );
     test("largeish number", () =>
-      expect(Decode.block(Js.Json.string("0x0D8779a0")))
+      expect(Decode.blockNumber(Js.Json.string("0x0D8779a0")))
       |> toEqual(226982304)
     );
   });

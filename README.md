@@ -33,8 +33,8 @@ The RPC methods currently implemented are:
 - [x] **`eth_estimateGas` as `estimateGas()`**
 - [x] **`eth_gasPrice` as `gasPrice()`**
 - [x] **`eth_getBalance` as `balanceOf()`**
-- [ ] **`eth_getBlockByNumber`**
-- [ ] **`eth_getBlockByHash`**
+- [x] **`eth_getBlockByNumber` as `blockByNumber`**
+- [x] **`eth_getBlockByHash` as `blockByHash`**
 - [ ] `eth_getBlockTransactionCountByHash`
 - [ ] `eth_getBlockTransactionCountByNumber`
 - [ ] `eth_getCode` (only supports block number “latest”)
@@ -53,9 +53,8 @@ The RPC methods currently implemented are:
 - [ ] `eth_newBlockFilter`
 - [ ] `eth_newFilter` (includes log/event filters)
 - [ ] `eth_protocolVersion`
-- [x] `eth_sendTransaction` as `sendTransaction()`
+- [x] **`eth_sendTransaction` as `sendTransaction()`**
 - [ ] **`eth_sendRawTransaction`**
-- [ ] `eth_sign`
 - [ ] `eth_subscribe` (only for websocket connections. "syncing" subscriptions are not yet supported)
 - [ ] `eth_unsubscribe` (only for websocket connections. "syncing" subscriptions are not yet supported)
 - [ ] `eth_syncing`
