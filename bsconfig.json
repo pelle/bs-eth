@@ -13,7 +13,7 @@
   "bs-dependencies": [
     "@glennsl/bs-json",
     "bs-fetch",
-    "@aantron/repromise"
+    "reason-promise"
   ],
   "bs-dev-dependencies": [
     "@glennsl/bs-jest"
