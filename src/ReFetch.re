@@ -3,7 +3,7 @@
 open Belt.Result;
 
 let fetchJson = (url, payload) => {
-  Repromise.Rejectable.fromJsPromise(
+  Promise.Js.fromBsPromise(
     Fetch.fetchWithInit(
       url,
       Fetch.RequestInit.make(
@@ -15,11 +15,7 @@ let fetchJson = (url, payload) => {
       ),
     ),
   )
-  |> Repromise.Rejectable.andThen(r =>
-       Repromise.Rejectable.fromJsPromise(Fetch.Response.json(r))
-     )
-  |> Repromise.Rejectable.map(json => Ok(json))
-  |> Repromise.Rejectable.catch(_ =>
-       Repromise.Rejectable.resolved(Error("Error"))
-     );
+  ->Promise.Js.flatMap(r => Promise.Js.fromBsPromise(Fetch.Response.json(r)))
+  ->Promise.Js.map(json => Ok(json))
+  ->Promise.Js.catch(_ => Promise.Js.resolved(Error("Error")));
 };

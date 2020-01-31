@@ -2,143 +2,67 @@ open Formats;
 open Belt.Result;
 
 let coinbase = (provider: Providers.provider) =>
-  provider("eth_coinbase", [||])
-  |> Repromise.map(result =>
-       switch (result) {
-       | Ok(data) => Ok(Decode.address(data))
-       | Error(msg) => Error(msg)
-       }
-     );
+  provider("eth_coinbase", [||])->Promise.mapOk(Decode.address);
 
 let accounts = (provider: Providers.provider) =>
-  provider("eth_accounts", [||])
-  |> Repromise.map(result =>
-       switch (result) {
-       | Ok(data) => Ok(Decode.accounts(data))
-       | Error(msg) => Error(msg)
-       }
-     );
+  provider("eth_accounts", [||])->Promise.mapOk(Decode.accounts);
 
 let balanceOf =
     (~provider: Providers.provider, ~account: address, ~from=Latest, ()) =>
   if (validateAddress(account)) {
     let params = [|Encode.address(account), Encode.blockOrTag(from)|];
-    provider("eth_getBalance", params)
-    |> Repromise.map(result =>
-         switch (result) {
-         | Ok(data) => Ok(Decode.amount(data))
-         | Error(msg) => Error(msg)
-         }
-       );
+    provider("eth_getBalance", params)->Promise.mapOk(Decode.amount);
   } else {
-    Repromise.resolved(Error("Invalid Address: " ++ account));
+    Promise.resolved(Error("Invalid Address: " ++ account));
   };
 
 let transactionCount =
     (~provider: Providers.provider, ~account: address, ~from=Latest, ()) =>
   if (validateAddress(account)) {
     let params = [|Encode.address(account), Encode.blockOrTag(from)|];
-    provider("eth_getTransactionCount", params)
-    |> Repromise.map(result =>
-         switch (result) {
-         | Ok(data) => Ok(Decode.nonce(data))
-         | Error(msg) => Error(msg)
-         }
-       );
+    provider("eth_getTransactionCount", params)->Promise.mapOk(Decode.nonce);
   } else {
-    Repromise.resolved(Error("Invalid Address: " ++ account));
+    Promise.resolved(Error("Invalid Address: " ++ account));
   };
 
 let blockNumber = (provider: Providers.provider) =>
-  provider("eth_blockNumber", [||])
-  |> Repromise.map(result =>
-       switch (result) {
-       | Ok(data) => Ok(Decode.blockNumber(data))
-       | Error(msg) => Error(msg)
-       }
-     );
+  provider("eth_blockNumber", [||])->Promise.mapOk(Decode.blockNumber);
 
 let gasPrice = (provider: Providers.provider) =>
-  provider("eth_gasPrice", [||])
-  |> Repromise.map(result =>
-       switch (result) {
-       | Ok(data) => Ok(Decode.amount(data))
-       | Error(msg) => Error(msg)
-       }
-     );
+  provider("eth_gasPrice", [||])->Promise.mapOk(Decode.amount);
 
 let sendTransaction = (~provider: Providers.provider, ~tx) => {
   let params = [|Encode.transaction(tx)|];
-  provider("eth_sendTransaction", params)
-  |> Repromise.map(result =>
-       switch (result) {
-       | Ok(data) => Ok(Decode.data(data))
-       | Error(msg) => Error(msg)
-       }
-     );
+  provider("eth_sendTransaction", params)->Promise.mapOk(Decode.data);
 };
 
 let sendRawTransaction = (~provider: Providers.provider, ~tx: Formats.data) => {
   let params = [|Encode.data(tx)|];
-  provider("eth_sendRawTransaction", params)
-  |> Repromise.map(result =>
-       switch (result) {
-       | Ok(data) => Ok(Decode.data(data))
-       | Error(msg) => Error(msg)
-       }
-     );
+  provider("eth_sendRawTransaction", params)->Promise.mapOk(Decode.data);
 };
 
 let transactionByHash =
     (~provider: Providers.provider, ~txHash: Formats.txHash) =>
   provider("eth_getTransactionByHash", [|Encode.data(txHash)|])
-  |> Repromise.map(result =>
-       switch (result) {
-       | Ok(data) => Ok(Decode.transaction(data))
-       | Error(msg) => Error(msg)
-       }
-     );
+  ->Promise.mapOk(Decode.transaction);
 
 let transactionReceipt =
     (~provider: Providers.provider, ~txHash: Formats.txHash) =>
   provider("eth_getTransactionReceipt", [|Encode.data(txHash)|])
-  |> Repromise.map(result =>
-       switch (result) {
-       | Ok(data) => Ok(Decode.receipt(data))
-       | Error(msg) => Error(msg)
-       }
-     );
+  ->Promise.mapOk(Decode.receipt);
 
 let estimateGas = (~provider: Providers.provider, ~tx, ~from=Latest, ()) => {
   let params = [|Encode.transaction(tx), Encode.blockOrTag(from)|];
-  provider("eth_estimateGas", params)
-  |> Repromise.map(result =>
-       switch (result) {
-       | Ok(data) => Ok(Decode.amount(data))
-       | Error(msg) => Error(msg)
-       }
-     );
+  provider("eth_estimateGas", params)->Promise.mapOk(Decode.amount);
 };
 
 let call = (~provider: Providers.provider, ~tx, ~from=Latest, ()) => {
   let params = [|Encode.transaction(tx), Encode.blockOrTag(from)|];
-  provider("eth_call", params)
-  |> Repromise.map(result =>
-       switch (result) {
-       | Ok(data) => Ok(Decode.data(data))
-       | Error(msg) => Error(msg)
-       }
-     );
+  provider("eth_call", params)->Promise.mapOk(Decode.data);
 };
 
 let mineBlock = (provider: Providers.provider) =>
-  provider("evm_mine", [||])
-  |> Repromise.map(result =>
-       switch (result) {
-       | Ok(data) => Ok(Decode.string(data))
-       | Error(msg) => Error(msg)
-       }
-     );
+  provider("evm_mine", [||])->Promise.mapOk(Decode.string);
 
 let blockByHash =
     (
@@ -150,12 +74,7 @@ let blockByHash =
     "eth_getBlockByHash",
     [|Encode.data(blockHash), Encode.bool(deep)|],
   )
-  |> Repromise.map(result =>
-       switch (result) {
-       | Ok(data) => Ok(Decode.block(data))
-       | Error(msg) => Error(msg)
-       }
-     );
+  ->Promise.mapOk(Decode.block);
 
 let blockByNumber =
     (
@@ -167,18 +86,7 @@ let blockByNumber =
     "eth_getBlockByNumber",
     [|Encode.quantity(blockNumber), Encode.bool(deep)|],
   )
-  |> Repromise.map(result =>
-       switch (result) {
-       | Ok(data) => Ok(Decode.block(data))
-       | Error(msg) => Error(msg)
-       }
-     );
+  ->Promise.mapOk(Decode.block);
 
 let netVersion = (provider: Providers.provider) =>
-  provider("net_version", [||])
-  |> Repromise.map(result =>
-       switch (result) {
-       | Ok(data) => Ok(Decode.quantity(data))
-       | Error(msg) => Error(msg)
-       }
-     );
+  provider("net_version", [||])->Promise.mapOk(Decode.quantity);

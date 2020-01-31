@@ -39,7 +39,7 @@
     "microbundle": "^0.11.0"
   },
   "dependencies": {
-    "@aantron/repromise": "^0.6.0",
+    "reason-promise": "^1.0.2",
     "@glennsl/bs-json": "^3.0.0",
     "bs-fetch": "^0.3.0",
     "isomorphic-fetch": "^2.2.1",

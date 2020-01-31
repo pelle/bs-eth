@@ -34,17 +34,17 @@ let handleResponse = (json): rpcResult => {
   };
 };
 
-type provider = (string, Js.Array.t(Js.Json.t)) => Repromise.t(rpcResult);
+type provider = (string, Js.Array.t(Js.Json.t)) => Promise.t(rpcResult);
 
 let http = (url): provider =>
   (method, params) =>
     ReFetch.fetchJson(url, toRequest(method, params))
-    |> Repromise.map(response =>
-         switch (response) {
-         | Ok(json) => handleResponse(json)
-         | Error(error) => Error(error)
-         }
-       );
+    ->Promise.map(response =>
+        switch (response) {
+        | Ok(json) => handleResponse(json)
+        | Error(error) => Error(error)
+        }
+      );
 
 module Web3provider = {
   type t;
@@ -53,7 +53,7 @@ module Web3provider = {
 };
 
 let web3 = (web3p: Web3provider.t, method, params) => {
-  let (p, resolve_p) = Repromise.make();
+  let (p, resolve_p) = Promise.pending();
   Web3provider.sendAsync(web3p, toRequest(method, params), (error, response) =>
     resolve_p(
       switch (Js.Nullable.toOption(error), Js.Nullable.toOption(response)) {
